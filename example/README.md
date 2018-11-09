@@ -1,4 +1,4 @@
-# flutter_file_manager_example
+# flutter_file_manager example
 
 A new Flutter project.
 
