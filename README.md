@@ -12,8 +12,10 @@ For help getting started with Flutter, view our online [documentation](https://f
 For help on editing package code, view the [documentation](https://flutter.io/developing-packages/).
 
 ## Screenshots
-![Screenshot_Example](https://github.com/Eagle6789/flutter_file_manager/blob/master/screenshots/ss3.png?raw=true)
-![Screenshot_Example](https://github.com/Eagle6789/flutter_file_manager/blob/master/screenshots/ss5.png?raw=true)
+<p>
+<img src="ss1.png" height="300em" /> <img src="https://github.com/Eagle6789/flutter_file_manager/blob/master/screenshots/ss3.png?raw=true" height="300em" />
+<img src="ss3.png" height="300em" /> <img src="https://github.com/Eagle6789/flutter_file_manager/blob/master/screenshots/ss5.png?raw=true" height="300em" />
+</p>
 
 
 
