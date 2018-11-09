@@ -1,6 +1,6 @@
 # flutter_file_manager
 
-A set of utilities, that helps to manage the files & directories in Android system.
+A set of utilities, that help to manage the files & directories in Android system.
 
 version: 0.0.1
 
@@ -45,7 +45,7 @@ List<String> imagesPaths = await FileManager.filesTreeList(dir.path,extensions: 
 * [Mohamed Naga](https://github.com/eagle6789)
 
 ## Donate
-* [PayPal](paypal.me/eagle6789)
+* [PayPal](https://www.paypal.me/eagle6789)
 
 ### Contact me
 me.developer.a@gmail.com
