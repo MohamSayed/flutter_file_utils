@@ -48,16 +48,16 @@ class FileManager {
     List<String> recentFilesPaths = [];
     if (paths.length < howMany) howMany = paths.length;
     for (int i = 0; i < howMany; i++) {
-      var rf = recentCreatedFile(paths).toString();
-      recentFilesPaths.add(rf);
-      paths.remove(rf);
+      String rcf = await recentCreatedFile(paths);
+      recentFilesPaths.add(rcf);
+      paths.remove(rcf);
     }
 
     return recentFilesPaths;
   }
 
   static Future<String> recentCreatedFile(paths) async {
-    var recentFilepath = paths[0];
+    String recentFilepath = paths[0];
     for (var path in paths) {
       if (File(recentFilepath)
               .statSync()

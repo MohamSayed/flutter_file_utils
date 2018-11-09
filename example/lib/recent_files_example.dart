@@ -27,7 +27,7 @@ class _MyAppState extends State<MyApp> {
                     mainAxisSpacing: 0.0,
                   ),
                   primary: false,
-                  itemCount: 50, // equals the recents files length
+                  itemCount: 10, // equals the recents files length
 
                   itemBuilder: (context, index) {
                     return Image.file(File(snapshot.data[index]));
@@ -42,10 +42,13 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future buildImages() async {
+    List<String> imagesPaths = [];
+
     var root = await getExternalStorageDirectory();
     List<String> files =
         await FileManager.filesTreeList(root.path, extensions: ["png", "jpg"]);
-  
-    return files;
+    imagesPaths = await FileManager.recentCreatedFiles(files, 20);
+    print(imagesPaths);
+    return imagesPaths;
   }
 }
