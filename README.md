@@ -13,8 +13,8 @@ For help on editing package code, view the [documentation](https://flutter.io/de
 
 ## Screenshots
 <p>
-<img src="ss1.png" height="300em" /> <img src="https://github.com/Eagle6789/flutter_file_manager/blob/master/screenshots/ss3.png?raw=true" height="300em" />
-<img src="ss3.png" height="300em" /> <img src="https://github.com/Eagle6789/flutter_file_manager/blob/master/screenshots/ss5.png?raw=true" height="300em" />
+<img src="ss3.png" height="300em" /> <img src="https://github.com/Eagle6789/flutter_file_manager/blob/master/screenshots/ss3.png?raw=true" height="300em" />
+<img src="ss5.png" height="300em" /> <img src="https://github.com/Eagle6789/flutter_file_manager/blob/master/screenshots/ss5.png?raw=true" height="300em" />
 </p>
 
 
