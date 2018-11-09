@@ -1,6 +1,6 @@
 # flutter_file_manager
 
-A set of utilities, that hepls to manage the files & directories in Android system.
+A set of utilities, that helps to manage the files & directories in Android system.
 
 version: 0.0.1
 
