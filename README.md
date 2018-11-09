@@ -41,6 +41,9 @@ Don't forget to give `Storage` permissions to your app, manually or by this plug
 var dir = await getExternalStorageDirectory();
 List<String> imagesPaths = await FileManager.filesTreeList(dir.path,extensions: ["png", "jpg"]);
 ```
+### Example
+* [example](https://github.com/Eagle6789/flutter_file_manager/tree/master/example)
+
 ### Contributors
 * [Mohamed Naga](https://github.com/eagle6789)
 
