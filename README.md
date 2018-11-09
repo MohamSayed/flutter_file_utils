@@ -38,8 +38,12 @@ And, add read / write permissions in your
 Don't forget to give `Storage` permissions to your app, manually or by this plugin [simple_permissions](https://pub.dartlang.org/packages/simple_permissions)
 
 ```dart
-var dir = await getExternalStorageDirectory();
-List<String> imagesPaths = await FileManager.filesTreeList(dir.path,extensions: ["png", "jpg"]);
+/// this code will bring you all the file types that match the given extensions.
+List<String> imagesPaths = [];
+Future buildImages() async {
+	var dir = await getExternalStorageDirectory();
+	imagesPaths = await FileManager.filesTreeList(dir.path, extensions: ["png", "jpg"]);
+}
 ```
 ### Example
 * [example](https://github.com/Eagle6789/flutter_file_manager/tree/master/example)
