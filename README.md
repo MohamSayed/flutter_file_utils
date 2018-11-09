@@ -1,8 +1,9 @@
 # flutter_file_manager
 
+[![pub package](https://img.shields.io/pub/v/image_picker.svg)](https://pub.dartlang.org/packages/flutter_file_manager)
+
 A set of utilities, that help to manage the files & directories in Android system.
 
-version: 0.0.1
 
 ## Getting Started
 
@@ -11,10 +12,14 @@ For help getting started with Flutter, view our online [documentation](https://f
 For help on editing package code, view the [documentation](https://flutter.io/developing-packages/).
 
 ## Screenshots
+![Screenshot_Example](https://github.com/Eagle6789/flutter_file_manager/blob/master/screenshots/ss1.png?raw=true)
+![Screenshot_Example](https://github.com/Eagle6789/flutter_file_manager/blob/master/screenshots/ss2.png?raw=true)
+![Screenshot_Example](https://github.com/Eagle6789/flutter_file_manager/blob/master/screenshots/ss3.png?raw=true)
+![Screenshot_Example](https://github.com/Eagle6789/flutter_file_manager/blob/master/screenshots/ss4.png?raw=true)
+![Screenshot_Example](https://github.com/Eagle6789/flutter_file_manager/blob/master/screenshots/ss5.png?raw=true)
+![Screenshot_Example](https://github.com/Eagle6789/flutter_file_manager/blob/master/screenshots/ss7.png?raw=true)
+![Screenshot_Example](https://github.com/Eagle6789/flutter_file_manager/blob/master/screenshots/ss8.png?raw=true)
 
-<img src="screenshots/ss1.png" height="300em" /> <img src="screenshots/ss2.png" height="300em" />
-<img src="screenshots/ss3.png" height="300em" /> <img src="screenshots/ss4.png" height="300em" />
-<img src="screenshots/ss5.png" height="300em" /> <img src="screenshots/ss6.png" height="300em" />
 
 ## Usage
 
