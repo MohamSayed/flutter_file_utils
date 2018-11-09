@@ -1,6 +1,6 @@
 # flutter_file_manager
 
-[![pub package](https://img.shields.io/pub/v/image_picker.svg)](https://pub.dartlang.org/packages/flutter_file_manager)
+[![pub package](https://img.shields.io/pub/v/flutter_file_manager.svg)](https://pub.dartlang.org/packages/flutter_file_manager)
 
 A set of utilities, that help to manage the files & directories in Android system.
 
