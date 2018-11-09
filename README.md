@@ -15,7 +15,7 @@ For help on editing package code, view the [documentation](https://flutter.io/de
 <p>
 <img height="300em" /> <img src="https://github.com/Eagle6789/flutter_file_manager/blob/master/screenshots/ss1.png?raw=true" height="300em" />
 <img height="300em" /> <img src="https://github.com/Eagle6789/flutter_file_manager/blob/master/screenshots/ss2.png?raw=true" height="300em" />
-<img height="300em" /> <img src="https://github.com/Eagle6789/flutter_file_manager/blob/master/screenshots/ss3.png?raw=true" height="300em" />
+<img height="300em" /> <img src="https://github.com/Eagle6789/flutter_file_manager/blob/master/screenshots/ss3.jpg?raw=true" height="300em" />
 
 </p>
 
