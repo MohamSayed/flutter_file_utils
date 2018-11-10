@@ -16,7 +16,7 @@ For help on editing package code, view the [documentation](https://flutter.io/de
 ## Screenshots
 <p>
 <img src="screenshots/ss1.png" height="300em" /> <img src="screenshots/ss2.jpg" height="300em"/>
-<img src="screenshots/ss3.jpg" height="300em" /> <img src="screenshots/ss4.jpg" />
+<img src="screenshots/ss3.jpg" height="300em" /> <img src="screenshots/ss4.jpg" height="300em"/>
 <img src="screenshots/ss5.jpg" height="300em" /> <img src="screenshots/ss6.jpg" height="300em" /> <img src="screenshots/ss7.jpg" height="300em" />
 </p>
 
