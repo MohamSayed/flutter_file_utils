@@ -89,10 +89,8 @@ class _MyAppState extends State<MyApp> {
 
   Future buildImages() async {
     var root = await getExternalStorageDirectory();
-
-    // get all files that match these extensions
     List<String> files =
-        await FileManager.filesTree(root.path, extensions: ["png", "jpg"]);
+        await FileManager(root: root.path).filesTree(extensions: ["png", "jpg"]);
   
     return files;
   }

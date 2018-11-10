@@ -19,7 +19,7 @@ class _MyAppState extends State<MyApp> {
         body: FutureBuilder(
             future: buildImages(),
             builder: (BuildContext context, AsyncSnapshot snapshot) {
-              if (snapshot.hasData) {
+              if (snapshot.connectionState == ConnectionState.done) {
                 return GridView.builder(
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 3,
@@ -44,7 +44,7 @@ class _MyAppState extends State<MyApp> {
   Future buildImages() async {
     var root = await getExternalStorageDirectory();
     List<String> files =
-        await FileManager.filesTree(root.path, extensions: ["png", "jpg"]);
+        await FileManager(root: root.path).filesTree(extensions: ["png", "jpg"]);
   
     return files;
   }

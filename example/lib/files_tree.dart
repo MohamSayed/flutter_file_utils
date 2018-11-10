@@ -1,15 +1,10 @@
-/**
- * get all video files
- * 
- */
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_file_manager/flutter_file_manager.dart';
 import 'package:path_provider/path_provider.dart';
 
-class TextsList extends StatelessWidget {
+class MyFiles extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -28,7 +23,7 @@ class TextsList extends StatelessWidget {
                     return ListTile(
                         title: Container(
                             decoration: BoxDecoration(
-                                border: Border.all(color: Colors.blueAccent)),
+                                border: Border(bottom: BorderSide())),
                             child: Text(snapshot.data[index])));
                   },
                 );
@@ -39,12 +34,11 @@ class TextsList extends StatelessWidget {
       ),
     );
   }
-
-  // bring all text files starting from the external storage
+ // get all files that match these extensions
   Future buildImages() async {
     var root = await getExternalStorageDirectory();
-    List<String> files = await FileManager.filesTree(root.path,
-        extensions: ["mp4", "3gp", "mkv"]); // remove extensions parameter if you want all files
+    List<String> files = await FileManager(root: root.path)
+        .filesTree(extensions: ["txt", "3gp", "zip", "png"]);
     return files;
   }
 }

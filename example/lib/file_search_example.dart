@@ -32,8 +32,7 @@ class _FilesSearchStateApp extends State<FilesSearchApp> {
           ),
         ),
         body: FutureBuilder(
-            future: getfiles(
-                myController.text.length == 0 ? null : myController.text),
+            future: getfiles(myController.text),
             builder: (BuildContext context, AsyncSnapshot snapshot) {
               if (snapshot.connectionState == ConnectionState.done) {
                 if (snapshot.data != null) {
