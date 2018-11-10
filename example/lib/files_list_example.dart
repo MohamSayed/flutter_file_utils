@@ -16,6 +16,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
+        appBar: AppBar(title: Text("External Storage/DCIM/camera"),),
         body: FutureBuilder(
             future: buildImages(),
             builder: (BuildContext context, AsyncSnapshot snapshot) {
@@ -27,7 +28,7 @@ class _MyAppState extends State<MyApp> {
                     mainAxisSpacing: 0.0,
                   ),
                   primary: false,
-                  itemCount: snapshot.data.length,
+                  itemCount: snapshot.data.length, // equals the recents files length
 
                   itemBuilder: (context, index) {
                     return Image.file(File(snapshot.data[index]));
@@ -43,8 +44,9 @@ class _MyAppState extends State<MyApp> {
 
   Future buildImages() async {
     var root = await getExternalStorageDirectory();
+    var fm = FileManager(root: root.path);
     List<String> files =
-        await FileManager.filesTree(root.path, extensions: ["png", "jpg"]);
+        await FileManager.listFiles(root.path + "/DCIM/", extensions: ["png", "jpg"]);
   
     return files;
   }

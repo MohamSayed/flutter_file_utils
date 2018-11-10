@@ -4,8 +4,12 @@ import 'dart:io';
 import './regex_tools.dart';
 import './time_tools.dart';
 import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
 class FileManager {
+  String root;
+  FileManager({this.root}) : assert(root != null);
+
   /// Returns a [HashMap] containing detials of the file or the directory.
   /// keys:
   /// type, lastChanged, lastModified, size
@@ -43,21 +47,27 @@ class FileManager {
 
   /// This function returns a [List] of [int howMany] recently created files.
   /// You may use `listFiles()` as paths to this function
-  static Future<List<String>> recentCreatedFiles(List paths, int howMany,
-      {List<String> extensions, List excludedPaths}) async {
+  Future<List<String>> recentCreatedFiles(int howMany,
+      {List<String> extensions, List<String> excludedPaths}) async {
     List<String> recentFilesPaths = [];
-    if (paths.length < howMany) howMany = paths.length;
+
+    List<String> filesPaths =
+        await filesTree(excludedPaths: excludedPaths, extensions: extensions);
+
+    if (filesPaths.length < howMany) howMany = filesPaths.length;
+
     for (int i = 0; i < howMany; i++) {
-      String rcf = await recentCreatedFile(paths);
+      String rcf = await _recentCreatedFile(filesPaths);
       recentFilesPaths.add(rcf);
-      paths.remove(rcf);
+      filesPaths.remove(rcf);
     }
 
     return recentFilesPaths;
   }
 
-  static Future<String> recentCreatedFile(paths) async {
+  static Future<String> _recentCreatedFile(paths) async {
     String recentFilepath = paths[0];
+
     for (var path in paths) {
       if (File(recentFilepath)
               .statSync()
@@ -72,21 +82,20 @@ class FileManager {
 
   /// Return list tree of directories.
   /// You may exclude some directories from the list .
-  ///
-  static Future<List<String>> dirsTree(String path,
-      {List<String> excludedDirs, bool followLinks: false}) async {
+  Future<List<String>> dirsTree(
+      {List<String> excludedPaths, bool followLinks: false}) async {
     List<String> dirsList = [];
 
-    String currentDir = _buildPath(path);
+    //String currentDir = _buildPath(root);
     List contents =
-        new Directory(path).listSync(recursive: true, followLinks: followLinks);
+        new Directory(root).listSync(recursive: true, followLinks: followLinks);
     try {
-      if (excludedDirs != null) {
+      if (excludedPaths != null) {
         for (var fileOrDir in contents) {
           if (fileOrDir is Directory) {
             if (!RegexTools.deeperPathCheckAll(
-                currentDir + fileOrDir.path.replaceFirst('.', ''),
-                excludedDirs)) {
+                root + r'/' + fileOrDir.path.replaceFirst('.', ''),
+                excludedPaths)) {
               //print(fileOrDir.path);
               dirsList.add(p.normalize(fileOrDir.path));
             }
@@ -95,7 +104,7 @@ class FileManager {
       } else {
         for (var fileOrDir in contents) {
           if (fileOrDir is Directory) {
-            // print(fileOrDir.path);
+            //print(fileOrDir.path);
             dirsList.add(p.normalize(fileOrDir.path));
           }
         }
@@ -125,7 +134,7 @@ class FileManager {
   ///
   static Future<List<String>> listFiles(String path,
       {List<String> extensions}) async {
-    List<String> filesList = [];
+    List<String> dirs = [];
     List contents =
         new Directory(path).listSync(followLinks: false, recursive: false);
     String currentDir = _buildPath(path);
@@ -137,7 +146,7 @@ class FileManager {
           if (fileOrDir is File) {
             for (var extension in await extensionsPatterns) {
               if (RegexTools.checkExtension(extension, fileOrDir.path)) {
-                filesList.add(p.normalize(currentDir + fileOrDir.path));
+                dirs.add(p.normalize(currentDir + fileOrDir.path));
               }
             }
           }
@@ -145,34 +154,36 @@ class FileManager {
       } else {
         for (var fileOrDir in contents) {
           if (fileOrDir is File) {
-            filesList.add(p.normalize(currentDir + fileOrDir.path));
+            dirs.add(p.normalize(currentDir + fileOrDir.path));
           }
         }
       }
     } catch (e) {
       return null;
     }
-    return filesList;
+    return dirs;
   }
 
-  static Future<List<String>> filesTreeList(String path,
-      {List<String> extensions, List<String> excludedDirs}) async {
-    List<String> filesList = [];
-    List<String> dirsTreeList =
-        await dirsTree(path, excludedDirs: excludedDirs);
+  /// return a [List] of path starting from the root
+  Future<List<String>> filesTree(
+      {List<String> extensions, List<String> excludedPaths}) async {
+    List<String> files = [];
+
+    List<String> dirs = await dirsTree();
+
     try {
       if (extensions != null) {
-        for (var dir in dirsTreeList) {
+        for (var dir in dirs) {
           for (var file in await listFiles(dir, extensions: extensions)) {
             //print(file);
-            filesList.add(file);
+            files.add(file);
           }
         }
       } else {
-        for (var dir in dirsTreeList) {
+        for (var dir in dirs) {
           for (var file in await listFiles(dir)) {
             //print(file);
-            filesList.add(file);
+            files.add(file);
           }
         }
       }
@@ -180,16 +191,19 @@ class FileManager {
       print(e);
       return null;
     }
-    return filesList;
+    return files;
   }
 
-  static Future deleteFile(String path, {recursive: false}) async {
+  /// Delete file not a directory
+  /// e.g:
+  /// deleteFile(/storage/emulated/0/myFile.txt")
+  static Future<void> deleteFile(String path) async {
     //print("~ deleting:" + path);
     var file = File(path);
     try {
-      file.delete(recursive: recursive);
+      file.delete();
     } catch (e) {
-      print("error while deleting a file: $e");
+      print("error: $e");
     }
   }
 
@@ -197,9 +211,14 @@ class FileManager {
   /// You may supply `Regular Expression` e.g: "*\.png", instead of string.
   /// Example:
   /// List<String> imagesPaths = await FileManager.search("/storage/emulated/0/", "png");
-  static Future<List<String>> search(String path, var keyword) async {
-    Future<List<String>> dirs = dirsTree(path);
-    Future<List<String>> files = filesTreeList(path);
+  Future<List<String>> search(var keyword) async {
+    print("Searching for: $keyword");
+    if (keyword.length == 0 || keyword == null) {
+      throw Exception("search keyword == null");
+      return null;
+    }
+    Future<List<String>> dirs = dirsTree();
+    List<String> files = await filesTree();
     //print(files);
     List<String> founds = [];
     for (var dir in await dirs) {
@@ -217,10 +236,13 @@ class FileManager {
     return founds;
   }
 
+  /// Delete a directory recursively or not
+  /// e.g:
+  /// deleteFile(/storage/emulated/0/myFile.txt")
   static bool deleteDir(String path, {recursive: false}) {
     //print("~ deleting:" + path);
     if (File(path).existsSync()) {
-      throw Exception("This is file path not directory path");
+      throw Exception("This is a file path not a directory path");
     }
     var file = File(path);
     try {

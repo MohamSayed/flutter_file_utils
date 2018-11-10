@@ -1,36 +1,35 @@
+/**
+ * get all video files
+ * 
+ */
 import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:flutter_file_manager/flutter_file_manager.dart';
+import 'package:path_provider/path_provider.dart';
 
-void main() => runApp(new MyApp());
-
-class MyApp extends StatefulWidget {
-  _MyAppState createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
+class TextsList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
+        appBar: AppBar(
+          title: Text("External Storage: video files"),
+        ),
         body: FutureBuilder(
             future: buildImages(),
             builder: (BuildContext context, AsyncSnapshot snapshot) {
               if (snapshot.hasData) {
-                return GridView.builder(
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    crossAxisSpacing: 0.0,
-                    mainAxisSpacing: 0.0,
-                  ),
+                return ListView.builder(
                   primary: false,
                   itemCount: snapshot.data.length,
-
                   itemBuilder: (context, index) {
-                    return Image.file(File(snapshot.data[index]));
+                    return ListTile(
+                        title: Container(
+                            decoration: BoxDecoration(
+                                border: Border.all(color: Colors.blueAccent)),
+                            child: Text(snapshot.data[index])));
                   },
                 );
               } else if (snapshot.connectionState == ConnectionState.waiting) {
@@ -41,11 +40,11 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
+  // bring all text files starting from the external storage
   Future buildImages() async {
     var root = await getExternalStorageDirectory();
-    List<String> files =
-        await FileManager.filesTree(root.path, extensions: ["png", "jpg"]);
-  
+    List<String> files = await FileManager.filesTree(root.path,
+        extensions: ["mp4", "3gp", "mkv"]); // remove extensions parameter if you want all files
     return files;
   }
 }
