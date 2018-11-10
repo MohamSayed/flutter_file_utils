@@ -4,7 +4,6 @@ import 'dart:io';
 import './regex_tools.dart';
 import './time_tools.dart';
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 
 class FileManager {
   String root;
@@ -215,7 +214,6 @@ class FileManager {
     print("Searching for: $keyword");
     if (keyword.length == 0 || keyword == null) {
       throw Exception("search keyword == null");
-      return null;
     }
     Future<List<String>> dirs = dirsTree();
     List<String> files = await filesTree();
@@ -227,7 +225,7 @@ class FileManager {
       }
     }
 
-    for (var file in await files) {
+    for (var file in files) {
       if (RegexTools.searchCheck(file, keyword)) {
         //print(file);
         founds.add(file);

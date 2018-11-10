@@ -97,7 +97,7 @@ class _MyAppState extends State<MyApp> {
 }
 ```
 ### Example
-* [examples](https://github.com/Eagle6789/flutter_file_manager/tree/master/example)
+* [examples](https://github.com/Eagle6789/flutter_file_manager/tree/master/example/lib)
 
 ### Features
 * file details
