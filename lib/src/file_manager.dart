@@ -100,7 +100,7 @@ class FileManager {
     try {
       contents = root.listSync(recursive: true, followLinks: followLinks);
     } catch (e) {
-      print(Permisions)
+      print(e);
     }
 
     try {
