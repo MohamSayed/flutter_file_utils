@@ -37,7 +37,7 @@ class MyFiles extends StatelessWidget {
  // get all files that match these extensions
   Future buildImages() async {
     var root = await getExternalStorageDirectory();
-    List<String> files = await FileManager(root: root.path)
+    List<String> files = await FileManager(root: root)
         .filesTree(extensions: ["txt", "3gp", "zip", "png"]);
     return files;
   }

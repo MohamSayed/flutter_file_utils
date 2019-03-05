@@ -44,57 +44,57 @@ And, add read / write permissions in your
 Don't forget to grant `Storage` permissions to your app, manually or by this plugin [simple_permissions](https://pub.dartlang.org/packages/simple_permissions)
 
 ```dart
-import 'dart:async';
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
+
+// packages
 import 'package:flutter_file_manager/flutter_file_manager.dart';
+import 'package:path_provider/path_provider.dart';
 
 void main() => runApp(new MyApp());
 
-class MyApp extends StatefulWidget {
-  _MyAppState createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
+@immutable
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return new MaterialApp(
       home: Scaffold(
-        body: FutureBuilder(
-            future: buildImages(),
+          appBar: AppBar(),
+          body: FutureBuilder(
+            future: _files(), // a previously-obtained Future<String> or null
             builder: (BuildContext context, AsyncSnapshot snapshot) {
-              if (snapshot.hasData) {
-                return GridView.builder(
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    crossAxisSpacing: 0.0,
-                    mainAxisSpacing: 0.0,
-                  ),
-                  primary: false,
-                  itemCount: snapshot.data.length,
-
-                  itemBuilder: (context, index) {
-                    return Image.file(File(snapshot.data[index]));
-                  },
-                );
-              } else if (snapshot.connectionState == ConnectionState.waiting) {
-                return Text("Loading");
+              switch (snapshot.connectionState) {
+                case ConnectionState.none:
+                  return Text('Press button to start.');
+                case ConnectionState.active:
+                case ConnectionState.waiting:
+                  return Text('Awaiting result...');
+                case ConnectionState.done:
+                  if (snapshot.hasError)
+                    return Text('Error: ${snapshot.error}');
+                  return ListView.builder(
+                      itemCount: snapshot.data.length,
+                      itemBuilder: (context, index) => Card(
+                              child: ListTile(
+                            title: Text(snapshot.data[index]),
+                            subtitle:
+                                Text(snapshot.data[index].split(".").last), // getting extension
+                          )));
               }
-            }),
-      ),
+              return null; // unreachable
+            },
+          )),
     );
   }
 
-  Future buildImages() async {
+  _files() async {
     var root = await getExternalStorageDirectory();
-    List<String> files =
-        await FileManager(root: root.path).filesTree(extensions: ["png", "jpg"]);
-  
+    // var images = await FileManager.listFiles("/storage/emulated/0/DCIM/camera/",
+    //     extensions: ["jpg"]);
+    var files = await FileManager(root: root).filesTree();
     return files;
   }
 }
+
 ```
 ### Example
 * [examples](https://github.com/Eagle6789/flutter_file_manager/tree/master/example/lib)

@@ -1,6 +1,7 @@
 // dart
 import 'dart:async';
 import 'dart:collection';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
@@ -10,15 +11,17 @@ import 'package:path/path.dart' as p;
 // local files
 import './regex_tools.dart';
 import './time_tools.dart';
+import 'package:flutter_file_manager/src/cutsom_file.dart';
 
 class FileManager {
-  String root;
+  Directory root;
   FileManager({this.root}) : assert(root != null);
 
   /// Returns a [HashMap] containing detials of the file or the directory.
-  /// keys:
-  ///     type, lastChanged, lastModified, size
-  ///     permissions, lastAccessed, extension
+  /// keys list:
+  /// type, lastChanged, lastModified, size
+  /// permissions, lastAccessed, extension
+  /// you can use details from [Directory] of [File] instead
   static Future<HashMap> fileDetails(String path) async {
     HashMap detailsList = HashMap();
     if (path == null ||
@@ -88,22 +91,24 @@ class FileManager {
     return recents;
   }
 
-
   /// Return list tree of directories.
   /// You may exclude some directories from the list .
   Future<List<String>> dirsTree(
       {List<String> excludedPaths, bool followLinks: false}) async {
     List<String> dirsList = [];
+    var contents;
+    try {
+      contents = root.listSync(recursive: true, followLinks: followLinks);
+    } catch (e) {
+      print(Permisions)
+    }
 
-    //String currentDir = _buildPath(root);
-    List contents =
-        new Directory(root).listSync(recursive: true, followLinks: followLinks);
     try {
       if (excludedPaths != null) {
         for (var fileOrDir in contents) {
           if (fileOrDir is Directory) {
             if (!RegexTools.deeperPathCheckAll(
-                root + r'/' + fileOrDir.path.replaceFirst('.', ''),
+                root.path + r'/' + fileOrDir.path.replaceFirst('.', ''),
                 excludedPaths)) {
               //print(fileOrDir.path);
               dirsList.add(p.normalize(fileOrDir.path));
@@ -145,8 +150,8 @@ class FileManager {
       {List<String> extensions}) async {
     List<String> paths = [];
     List contents =
-        new Directory(path).listSync(followLinks: false, recursive: false);
-    String currentDir = _buildPath(path);
+        Directory(path).listSync(followLinks: false, recursive: false);
+    //String currentDir = _buildPath(path);
     try {
       if (extensions != null) {
         Future<List<String>> extensionsPatterns =
@@ -155,7 +160,7 @@ class FileManager {
           if (fileOrDir is File) {
             for (var extension in await extensionsPatterns) {
               if (RegexTools.checkExtension(extension, fileOrDir.path)) {
-                paths.add(p.normalize(currentDir + fileOrDir.path));
+                paths.add(p.normalize(path + fileOrDir.path));
               }
             }
           }
@@ -163,7 +168,7 @@ class FileManager {
       } else {
         for (var fileOrDir in contents) {
           if (fileOrDir is File) {
-            paths.add(p.normalize(currentDir + fileOrDir.path));
+            paths.add(p.normalize(path + fileOrDir.path));
           }
         }
       }
@@ -177,11 +182,11 @@ class FileManager {
   /// [hidden]: this parameter excludes folders starts with " . "
   /// [excludedFolders]: this parameter excludes folders from the result
   /// [excludedPaths]: not working currently
-  static Future<List<String>> folderList(String root,
+  static Future<List<String>> folderList(Directory root,
       {List<String> excludedFolders,
       List<String> excludedPaths,
       bool hidden: true}) async {
-    var dirs = Directory(root).listSync(recursive: false, followLinks: false);
+    var dirs = root.listSync(recursive: false, followLinks: false);
     List<String> folders = [];
     try {
       for (var dir in dirs) {
@@ -231,6 +236,7 @@ class FileManager {
       } else {
         for (var fileOrDir in contents) {
           if (fileOrDir is Directory) {
+            // dir/../dir3 to dir/dir2/dir3
             directories.add(p.normalize(currentDir + fileOrDir.path));
           }
         }
@@ -241,13 +247,13 @@ class FileManager {
     return directories;
   }
 
-  /// return tree [List] of path starting from the root
+  /// return tree [List] of files starting from the root
   Future<List<String>> filesTree(
       {List<String> extensions, List<String> excludedPaths}) async {
     List<String> files = [];
 
     List<String> dirs = await dirsTree();
-    dirs.insert(0, root);
+    dirs.insert(0, root.path);
 
     try {
       if (extensions != null) {
