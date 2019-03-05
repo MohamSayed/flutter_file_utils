@@ -1,9 +1,15 @@
+// dart
 import 'dart:async';
 import 'dart:collection';
 import 'dart:io';
+import 'dart:math';
+
+// packages
+import 'package:path/path.dart' as p;
+
+// local files
 import './regex_tools.dart';
 import './time_tools.dart';
-import 'package:path/path.dart' as p;
 
 class FileManager {
   String root;
@@ -11,73 +17,77 @@ class FileManager {
 
   /// Returns a [HashMap] containing detials of the file or the directory.
   /// keys:
-  /// type, lastChanged, lastModified, size
-  /// permissions, lastAccessed
-  ///
+  ///     type, lastChanged, lastModified, size
+  ///     permissions, lastAccessed, extension
   static Future<HashMap> fileDetails(String path) async {
     HashMap detailsList = HashMap();
     if (path == null ||
         (!Directory(path).existsSync() && !File(path).existsSync())) {
-      print("path = null");
+      print("file or dir does not exists");
       return null;
+      // directory
     } else if (Directory(path).existsSync()) {
+      // directory or file
       detailsList["type"] = Directory(path).statSync().type.toString();
       detailsList["lastChanged"] =
           TimeTools.timeNormalize(Directory(path).statSync().changed);
       detailsList["lastModified"] = TimeTools.timeNormalize(
           Directory.fromUri(Uri.parse(path)).statSync().modified);
       detailsList["size"] = Directory(path).statSync().size;
+      detailsList["type"] = Directory(path).statSync().type.toString();
       detailsList["lastAccessed"] =
           TimeTools.timeNormalize(Directory(path).statSync().accessed);
       detailsList["permissions"] = Directory(path).statSync().modeString();
+      detailsList["path"] = path;
+
       return detailsList;
+      // file
     } else if (File(path).existsSync()) {
       var fileStat = File(path).statSync();
-      detailsList["type"] = fileStat.type.toString();
+      // directory or file
       detailsList["lastModified"] = TimeTools.timeNormalize(fileStat.modified);
       detailsList["lastAccessed"] = TimeTools.timeNormalize(fileStat.accessed);
       detailsList["lastChanged"] = TimeTools.timeNormalize(fileStat.changed);
+      detailsList["type"] = fileStat.type.toString();
       detailsList["size"] = fileStat.size;
       detailsList["permissions"] = fileStat.modeString();
+      detailsList["extension"] = p.extension(path).replaceFirst('.', '');
+      detailsList["path"] = path;
+
       return detailsList;
     }
     return null;
   }
 
   /// This function returns a [List] of [int howMany] recently created files.
-  /// You may use `listFiles()` as paths to this function
+  /// [excludeHidded] means that files that its folder are hidden will not be added
   Future<List<String>> recentCreatedFiles(int howMany,
-      {List<String> extensions, List<String> excludedPaths}) async {
-    List<String> recentFilesPaths = [];
+      {List<String> extensions,
+      List<String> excludedPaths,
+      excludeHidden: false}) async {
+    List<String> recents = [];
 
     List<String> filesPaths =
         await filesTree(excludedPaths: excludedPaths, extensions: extensions);
 
+    // note: in case that number of recent files are not sufficient, we limit the [howMany]
+    // to the number of the found ones
     if (filesPaths.length < howMany) howMany = filesPaths.length;
 
-    for (int i = 0; i < howMany; i++) {
-      String rcf = await _recentCreatedFile(filesPaths);
-      recentFilesPaths.add(rcf);
-      filesPaths.remove(rcf);
+    // adding
+    HashMap<int, String> times = HashMap();
+    filesPaths.forEach((file) => times.addAll(
+        {File(file).statSync().modified.millisecondsSinceEpoch.abs(): file}));
+    for (var i = 0; i <= howMany; i++) {
+      var _max = times.keys.toList().reduce(max);
+      recents.add(times[_max]);
+
+      times.remove(times.remove(_max));
     }
 
-    return recentFilesPaths;
+    return recents;
   }
 
-  static Future<String> _recentCreatedFile(paths) async {
-    String recentFilepath = paths[0];
-
-    for (var path in paths) {
-      if (File(recentFilepath)
-              .statSync()
-              .modified
-              .compareTo(File(path).statSync().modified) ==
-          -1) {
-        recentFilepath = path;
-      }
-    }
-    return recentFilepath;
-  }
 
   /// Return list tree of directories.
   /// You may exclude some directories from the list .
@@ -127,13 +137,13 @@ class FileManager {
     return currentDir;
   }
 
-  /// This function returns files' paths list only of from  specific location.
+  /// This function returns files' paths list only from  specific location.
   /// You may specify the types of the files you want to get by supplying the optional
   /// parameter [extensions].
   ///
   static Future<List<String>> listFiles(String path,
       {List<String> extensions}) async {
-    List<String> dirs = [];
+    List<String> paths = [];
     List contents =
         new Directory(path).listSync(followLinks: false, recursive: false);
     String currentDir = _buildPath(path);
@@ -145,7 +155,7 @@ class FileManager {
           if (fileOrDir is File) {
             for (var extension in await extensionsPatterns) {
               if (RegexTools.checkExtension(extension, fileOrDir.path)) {
-                dirs.add(p.normalize(currentDir + fileOrDir.path));
+                paths.add(p.normalize(currentDir + fileOrDir.path));
               }
             }
           }
@@ -153,35 +163,102 @@ class FileManager {
       } else {
         for (var fileOrDir in contents) {
           if (fileOrDir is File) {
-            dirs.add(p.normalize(currentDir + fileOrDir.path));
+            paths.add(p.normalize(currentDir + fileOrDir.path));
           }
         }
       }
     } catch (e) {
       return null;
     }
-    return dirs;
+    return paths;
   }
 
-  /// return a [List] of path starting from the root
+  /// This function return list of folders not paths
+  /// [hidden]: this parameter excludes folders starts with " . "
+  /// [excludedFolders]: this parameter excludes folders from the result
+  /// [excludedPaths]: not working currently
+  static Future<List<String>> folderList(String root,
+      {List<String> excludedFolders,
+      List<String> excludedPaths,
+      bool hidden: true}) async {
+    var dirs = Directory(root).listSync(recursive: false, followLinks: false);
+    List<String> folders = [];
+    try {
+      for (var dir in dirs) {
+        if (dir is Directory) {
+          String folder = dir.path.toString().split(r"/").last;
+          if (excludedFolders != null) {
+            if (!excludedFolders.contains(folder)) {
+              if (hidden == false) {
+                if (!folder.startsWith(".")) {
+                  folders.add(dir.path.toString().split(r"/").last);
+                } else
+                  folders.add(dir.path.toString().split(r"/").last);
+              }
+            }
+          } else {
+            if (hidden == false) {
+              if (!folder.startsWith(".")) folders.add(folder);
+            } else
+              folders.add(folder);
+          }
+        }
+      }
+    } catch (e) {
+      print(e);
+      return null;
+    }
+    return folders;
+  }
+
+  /// return [List] directories from specific path
+  /// [hidden] : [true] or [false] return hidden directory, like: "/storage/.thumbnails"
+  /// [true] will return hidden directories
+  static Future<List<String>> getDirectories(String path,
+      {hidden: true}) async {
+    List<String> directories = [];
+    List contents =
+        new Directory(path).listSync(followLinks: false, recursive: false);
+    String currentDir = _buildPath(path);
+    try {
+      if (hidden == false) {
+        for (var fileOrDir in contents) {
+          if (fileOrDir is Directory) {
+            if (!fileOrDir.path.startsWith("."))
+              directories.add(p.normalize(currentDir + fileOrDir.path));
+          }
+        }
+      } else {
+        for (var fileOrDir in contents) {
+          if (fileOrDir is Directory) {
+            directories.add(p.normalize(currentDir + fileOrDir.path));
+          }
+        }
+      }
+    } catch (e) {
+      return null;
+    }
+    return directories;
+  }
+
+  /// return tree [List] of path starting from the root
   Future<List<String>> filesTree(
       {List<String> extensions, List<String> excludedPaths}) async {
     List<String> files = [];
 
     List<String> dirs = await dirsTree();
+    dirs.insert(0, root);
 
     try {
       if (extensions != null) {
         for (var dir in dirs) {
           for (var file in await listFiles(dir, extensions: extensions)) {
-            //print(file);
             files.add(file);
           }
         }
       } else {
         for (var dir in dirs) {
           for (var file in await listFiles(dir)) {
-            //print(file);
             files.add(file);
           }
         }

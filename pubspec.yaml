@@ -1,7 +1,7 @@
 name: flutter_file_manager
 description: A set of utilities, that help you to manage the files & directories in Android system.
-version: 0.0.4
-author: Mohamed Naga <me.developer.a@gmail.com>
+version: 0.0.6
+author: Mohamed Naga <me.dev6789@gmail.com>
 homepage: https://github.com/Eagle6789/flutter_file_manager
 
 environment:
@@ -11,8 +11,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  path: ^1.6.2  
   path_provider: ^0.4.1
-  path: ^1.6.2
 
 dev_dependencies:
   flutter_test:

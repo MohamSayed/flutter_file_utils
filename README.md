@@ -32,7 +32,7 @@ dependencies:
     sdk: flutter
   path: ^1.6.2
   path_provider: ^0.4.1
-  flutter_file_manager: ^0.0.4
+  flutter_file_manager: ^0.0.6
 ```
 And, add read / write permissions in your
 `android/app/src/main/AndroidManifest.xml`

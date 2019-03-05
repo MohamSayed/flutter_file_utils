@@ -1,3 +1,12 @@
+## [0.0.6]
+
+* optimization
+* fixing bugs
+
+## [0.0.5]
+
+* fixing bugs
+
 ## [0.0.4]
 
 * re-structuring
