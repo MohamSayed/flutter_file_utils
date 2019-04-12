@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -14,6 +13,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
+
     return MaterialApp(
       home: Scaffold(
         body: FutureBuilder(
@@ -28,7 +28,6 @@ class _MyAppState extends State<MyApp> {
                   ),
                   primary: false,
                   itemCount: snapshot.data.length,
-
                   itemBuilder: (context, index) {
                     return Image.file(snapshot.data[index]);
                   },
@@ -45,7 +44,7 @@ class _MyAppState extends State<MyApp> {
     var root = await getExternalStorageDirectory();
     var files =
         await FileManager(root: root).filesTree(extensions: ["png", "jpg"]);
-  
+
     return files;
   }
 }

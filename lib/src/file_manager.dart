@@ -14,14 +14,15 @@ import './time_tools.dart';
 class FileManager {
   Directory root;
   String _permissionMessage = '''
-      \n\n
-      Try to add this lines to your AndroidManifest.xml file
+\n\n
+ Try to add thes lines to your AndroidManifest.xml file
 
       `<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>`
       `<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>`
 
-      or/and grant storage permissions to your applicaion from app settings\n
-      ''';
+and grant storage permissions to your applicaion from app settings
+\n
+''';
   FileManager({this.root}) : assert(root != null);
 
   /// Returns a [HashMap] containing detials of the file or the directory.
@@ -84,11 +85,15 @@ class FileManager {
 
   /// * This function returns a [List] of [int howMany] of type [File] of recently created files.
   /// * [excludeHidded] if [true] hidden files will not be returned
+  /// * sortedBy: 'type', 'size', 'date', 'alpha'
+  /// * [bool] reversed: in case parameter sortedBy is used
   Future<List<File>> recentCreatedFiles(int howMany,
       {List<String> extensions,
       List<String> excludedPaths,
-      excludeHidden: false}) async {
-    List<File> recents = [];
+      excludeHidden: false,
+      String sortedBy,
+      bool reversed: false}) async {
+    List<File> _recents = [];
 
     List<File> filesPaths = await filesTree(
         excludedPaths: excludedPaths,
@@ -99,27 +104,28 @@ class FileManager {
     // to the number of the found ones
     if (filesPaths.length < howMany) howMany = filesPaths.length;
 
-    // adding
-    HashMap<int, File> times = HashMap();
-    filesPaths.forEach((file) => times
-        .addAll({file.statSync().modified.millisecondsSinceEpoch.abs(): file}));
-    for (var i = 0; i <= howMany; i++) {
-      var _max = times.keys.toList().reduce(max);
-      recents.add(times[_max]);
-
-      times.remove(times.remove(_max));
+    filesPaths.sort((file1, file2) {
+      return file1.statSync().modified.compareTo(file2.statSync().modified);
+    });
+    // decrease length to howMany
+    _recents = _recents..getRange(0, howMany);
+    if (sortedBy != null) {
+      return sortBy(_recents, sortedBy, reversed: reversed);
     }
-
-    return recents;
+    return _recents;
   }
 
-  /// * This function returns a [List] of [int howMany] of type [String] of recently created files.
+  /// This function returns a [List] of [int howMany] of type [String] of recently created files.
   /// * [excludeHidden] hidden files will not be returned
-  Future<List<String>> recentCreatedFilesAsString(int howMany,
+  /// * sortedBy: 'type', 'size', 'date', 'alpha'
+  /// * [bool] reversed: in case parameter sortedBy is used
+  Future<List<String>> recentCreatedFilesAsStringList(int howMany,
       {List<String> extensions,
       List<String> excludedPaths,
-      excludeHidden: false}) async {
-    List<String> recents = [];
+      excludeHidden: false,
+      String sortedBy,
+      bool reversed}) async {
+    List<String> _recents = [];
 
     List<File> filesPaths = await filesTree(
         excludedPaths: excludedPaths,
@@ -128,30 +134,39 @@ class FileManager {
 
     // note: in case that number of recent files are not sufficient, we limit the [howMany]
     // to the number of the found ones
-    if (filesPaths.length < howMany) howMany = filesPaths.length;
 
-    // adding
-    HashMap<int, File> times = HashMap();
-    filesPaths.forEach((file) => times
-        .addAll({file.statSync().modified.millisecondsSinceEpoch.abs(): file}));
-    for (var i = 0; i <= howMany; i++) {
-      var _max = times.keys.toList().reduce(max);
-      recents.add(times[_max].absolute.path);
+    if (filesPaths.length <= howMany) howMany = filesPaths.length;
 
-      times.remove(times.remove(_max));
+    filesPaths.sort((file1, file2) {
+      return file1.statSync().modified.compareTo(file2.statSync().modified);
+    });
+
+    // transforming to String type
+    filesPaths.forEach((f) {
+      _recents.add(f.path);
+    });
+
+    // decrease length to howMany
+    _recents = _recents..getRange(0, howMany);
+    if (_recents != null) {
+      return sortByFromStringList(
+          _recents.map((recent) => p.join(root.absolute.path, recent)).toList(),
+          sortedBy,
+          reversed: reversed);
     }
-
-    return recents;
+    return _recents;
   }
 
   /// Return list tree of directories.
   /// You may exclude some directories from the list.
   /// * [excludedPaths] will excluded paths and their subpaths from the final [list]
-  Future<List<Directory>> dirsTree({
-    List<String> excludedPaths,
-    bool followLinks: false,
-    bool excludeHidden: false,
-  }) async {
+  /// * sortedBy: 'type', 'size', 'date', 'alpha'
+  /// * [bool] reversed: in case parameter sortedBy is used
+  Future<List<Directory>> dirsTree(
+      {List<String> excludedPaths,
+      bool followLinks: false,
+      bool excludeHidden: false,
+      String sortedBy}) async {
     List<Directory> dirs = [];
     var contents;
     try {
@@ -195,17 +210,23 @@ class FileManager {
     } catch (e) {
       return null;
     }
+    if (dirs != null) {
+      return sortBy(dirs, sortedBy);
+    }
+
     return dirs;
   }
 
   /// This function returns files' paths list only from  specific location.
   /// * You may specify the types of the files you want to get by supplying the optional
   /// [extensions].
-  ///
+  /// * sortedBy: 'type', 'size', 'date', 'alpha'
+  /// * [bool] reversed: in case parameter sortedBy is used
   static Future<List<File>> listFiles(String path,
       {List<String> extensions,
       followsLinks = false,
-      excludeHidden = false}) async {
+      excludeHidden = false,
+      String sortedBy}) async {
     List<File> files = [];
     List contents =
         Directory(path).listSync(followLinks: followsLinks, recursive: false);
@@ -239,18 +260,25 @@ class FileManager {
     } catch (e) {
       return null;
     }
+    if (files != null) {
+      return sortBy(files, sortedBy);
+    }
+
     return files;
   }
 
-  /// This function return list of folders , not paths, of type [String]
+  /// This function return list of folders of type [String] , not paths of [Directory].
   /// * [hidden]: this parameter excludes folders starts with " . "
   /// * [excludedFolders]: this parameter excludes folders from the result
-  /// * [excludedPaths]: not working currently
+  /// * sortedBy: 'type', 'size', 'date', 'alpha'
+  /// * [bool] reversed: in case parameter sortedBy is used
   /// * examples: ["Android", "Download", "DCIM", ....]
   static Future<List<String>> listFolder(Directory root,
       {List<String> excludedFolders,
       List<String> excludedPaths,
-      bool hidden: true}) async {
+      bool hidden: true,
+      String sortedBy,
+      bool reversed: false}) async {
     var dirs = root.listSync(recursive: false, followLinks: false);
     List<String> folders = [];
 
@@ -279,14 +307,26 @@ class FileManager {
       print(e);
       return null;
     }
+    if (folders != null) {
+      return sortByFromStringList(
+          folders.map((folder) => p.join(root.absolute.path, folder)), sortedBy,
+          reversed: reversed);
+    }
+
     return folders;
   }
 
   /// Return a [List] of directories starting from the given path
   /// * [hidden] : [true] or [false] return hidden directory, like: "/storage/.thumbnails"
   /// * [true] will return hidden directories
+  /// * sortedBy: 'type', 'size', 'date', 'alpha'
+  /// * [bool] reversed: in case parameter sortedBy is used
+
   static Future<List<Directory>> listDirectories(String path,
-      {excludeHidden: false, followLinks = false}) async {
+      {excludeHidden: false,
+      followLinks = false,
+      String sortedBy,
+      bool reversed: false}) async {
     List<Directory> directories = [];
     List contents = new Directory(path)
         .listSync(followLinks: followLinks, recursive: false);
@@ -309,16 +349,24 @@ class FileManager {
     } catch (e) {
       return null;
     }
+    if (directories != null) {
+      return sortBy(directories, sortedBy);
+    }
+
     return directories;
   }
 
   /// return tree [List] of files starting from the root of type [File]
   /// * [excludedPaths] example: '/storage/emulated/0/Android' no files will be
   /// returned from this path, and its sub directories
+  /// * sortedBy: 'type', 'size', 'date', 'alpha'
+  /// * [bool] reversed: in case parameter sortedBy is used
   Future<List<File>> filesTree(
       {List<String> extensions,
       List<String> excludedPaths,
-      excludeHidden = false}) async {
+      excludeHidden = false,
+      bool reversed: false,
+      String sortedBy}) async {
     List<File> files = [];
 
     List<Directory> dirs = await dirsTree(
@@ -359,16 +407,25 @@ class FileManager {
       print(e);
       return null;
     }
+
+    if (sortedBy != null) {
+      return sortBy(files, sortedBy);
+    }
+
     return files;
   }
 
   /// Return tree files [String] starting from the root of type
   /// * [excludedPaths] example: '/storage/emulated/0/Android' no files will be
   /// returned from this path, and its sub directories
-  Future<List<String>> filesTreeAsString(
+  /// * sortedBy: 'type', 'size', 'date', 'alpha'
+  /// * [bool] reversed: in case parameter sortedBy is used
+  Future<List<String>> filesTreeAsStringList(
       {List<String> extensions,
       List<String> excludedPaths,
-      excludeHidden = false}) async {
+      excludeHidden = false,
+      bool reversed: false,
+      String sortedBy}) async {
     List<String> files = [];
 
     List<Directory> dirs = await dirsTree(
@@ -403,6 +460,14 @@ class FileManager {
       print(e);
       return null;
     }
+
+    if (files != null) {
+      return sortByFromStringList(
+          files.map((file) => p.join(root.absolute.path, file)).toList(),
+          sortedBy,
+          reversed: reversed);
+    }
+
     return files;
   }
 
@@ -424,11 +489,17 @@ class FileManager {
   /// * [filesOnly] if set to [true] return only files
   /// * [dirsOnly] if set to [true] return only directories
   /// * You can set both to [true]
+  /// * sortedBy: 'type', 'size', 'date', 'alpha'
+  /// * [bool] reversed: in case parameter sortedBy is used
   /// * Example:
   /// * List<String> imagesPaths = await FileManager.search("myFile.png");
-  ///
   Future<List<String>> search(var keyword,
-      {List<String> excludedPaths, filesOnly = false, dirsOnly = false, List<String> extensions}) async {
+      {List<String> excludedPaths,
+      filesOnly = false,
+      dirsOnly = false,
+      List<String> extensions,
+      bool reversed: false,
+      String sortedBy}) async {
     print("Searching for: $keyword");
     if (keyword.length == 0 || keyword == null) {
       throw Exception("search keyword == null");
@@ -438,7 +509,10 @@ class FileManager {
       dirsOnly = true;
     }
     List<Directory> dirs = await dirsTree(excludedPaths: excludedPaths);
-    List<File> files = await filesTree(excludedPaths: excludedPaths, extensions: extensions);
+    List<File> files =
+        await filesTree(excludedPaths: excludedPaths, extensions: extensions);
+
+    // files that will be returned
     List<String> founds = [];
 
     if (dirsOnly == true) {
@@ -455,12 +529,16 @@ class FileManager {
         }
       }
     }
+
+    if (sortedBy != null) {
+      return sortBy(founds, sortedBy);
+    }
     return founds;
   }
 
   /// Delete a directory recursively or not
   /// e.g:
-  /// deleteFile(/storage/emulated/0/myFile.txt")
+  /// * deleteFile(/storage/emulated/0/myFile.txt")
   static bool deleteDir(String path, {recursive: false}) {
     //print("~ deleting:" + path);
     if (File(path).existsSync()) {
@@ -473,5 +551,159 @@ class FileManager {
     } catch (_) {
       return false;
     }
+  }
+
+  /// objects = [File] or [Directory]
+  /// argument [by] [String]: 'date', 'alpha', 'size'
+  static List<dynamic> sortBy(List<dynamic> objects, String by,
+      {bool reversed: false}) {
+    switch (by) {
+      case 'alpha':
+        objects
+            .sort((a, b) => getBaseName(a.path).compareTo(getBaseName(b.path)));
+        break;
+
+      case 'date':
+        objects.sort((a, b) {
+          return a
+              .statSync()
+              .modified
+              .millisecondsSinceEpoch
+              .compareTo(b.statSync().modified.millisecondsSinceEpoch);
+        });
+        break;
+
+      case 'size':
+        objects.sort((a, b) {
+          return a.statSync().size.compareTo(b.statSync().size);
+        });
+        break;
+
+      case 'type':
+        objects.sort((a, b) {
+          return p.extension(a.path).compareTo(p.extension(b.path));
+        });
+
+        break;
+      default:
+        objects
+            .sort((a, b) => getBaseName(a.path).compareTo(getBaseName(b.path)));
+    }
+    if (reversed == true) {
+      return objects.reversed.toList();
+    }
+    return objects;
+  }
+
+  /// objects = [File] or [Directory]
+  /// argument [by] [String]: 'date', 'alpha', 'size'
+  static List<dynamic> sortByFromStringList(List<String> objects, String by,
+      {bool reversed: false}) {
+    switch (by) {
+      case 'alpha':
+        objects.sort((a, b) => getBaseName(a).compareTo(getBaseName(b)));
+        break;
+
+      case 'date':
+        objects.sort((a, b) {
+          return File(a)
+              .statSync()
+              .modified
+              .millisecondsSinceEpoch
+              .compareTo(File(b).statSync().modified.millisecondsSinceEpoch);
+        });
+        break;
+
+      case 'size':
+        objects.sort((a, b) {
+          return File(a).statSync().size.compareTo(File(b).statSync().size);
+        });
+        break;
+
+      case 'type':
+        objects.sort((a, b) {
+          return p.extension(File(a).path).compareTo(p.extension(File(b).path));
+        });
+
+        break;
+      default:
+        objects.sort((a, b) => getBaseName(a).compareTo(getBaseName(b)));
+    }
+    if (reversed == true) {
+      return objects.reversed.toList();
+    }
+    return objects;
+  }
+
+  static String getBaseName(String path) {
+    return p.split(path).last;
+  }
+
+  /// return tree [List] of files starting from the root of type [File]
+  /// * [excludedPaths] example: '/storage/emulated/0/Android' no files will be
+  /// returned from this path, and its sub directories
+  Future<List<dynamic>> fileAndDirTree({
+    List<String> extensions,
+    List<String> excludedPaths,
+    excludeHidden = false,
+  }) async {
+    var _rawTree = root.listSync(followLinks: true, recursive: true);
+    List<dynamic> tree = [];
+    tree.insert(0, Directory(root.path));
+
+    try {
+      if (extensions != null) {
+        for (var object in _rawTree) {
+          if (object is File) {
+            for (var file in await listFiles(object.absolute.path,
+                extensions: extensions)) {
+              if (excludeHidden) {
+                if (!file.path.startsWith(".")) tree.add(file);
+              } else {
+                tree.add(file);
+              }
+            }
+            // directory
+          } else {
+            for (var dir in await listDirectories(
+              object.absolute.path,
+            )) {
+              if (excludeHidden) {
+                if (!dir.path.startsWith(".")) tree.add(dir);
+              } else {
+                tree.add(dir);
+              }
+            }
+          }
+        }
+
+        // extensions is null
+      } else {
+        for (var object in _rawTree) {
+          if (object is File) {
+            if (excludeHidden) {
+              if (!object.path.startsWith(".")) tree.add(object);
+            } else {
+              tree.add(object);
+            }
+          } else {
+            for (var dir in await listDirectories(
+              object.absolute.path,
+            )) {
+              if (excludeHidden) {
+                if (!dir.path.startsWith(".")) tree.add(dir);
+              } else {
+                tree.add(dir);
+              }
+            }
+          }
+        }
+      }
+    } catch (e) {
+      print(e);
+      return null;
+    }
+
+    return tree;
   }
 }
