@@ -1,27 +1,39 @@
 // dart
 import 'dart:async';
 import 'dart:collection';
-import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
 // packages
 import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
 // local files
-import './regex_tools.dart';
 import './time_tools.dart';
-import 'package:flutter_file_manager/src/cutsom_file.dart';
 
 class FileManager {
   Directory root;
+  String _permissionMessage = '''
+      \n\n
+      Try to add this lines to your AndroidManifest.xml file
+
+      `<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>`
+      `<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>`
+
+      or/and grant storage permissions to your applicaion from app settings\n
+      ''';
   FileManager({this.root}) : assert(root != null);
 
   /// Returns a [HashMap] containing detials of the file or the directory.
   /// keys list:
-  /// type, lastChanged, lastModified, size
-  /// permissions, lastAccessed, extension
-  /// you can use details from [Directory] of [File] instead
+  /// * type
+  /// * lastChanged
+  /// * lastModified
+  /// * size
+  /// * permissions
+  /// * lastAccessed
+  /// * extension
+  /// you can use details from [Directory] or [File] instead
   static Future<HashMap> fileDetails(String path) async {
     HashMap detailsList = HashMap();
     if (path == null ||
@@ -62,25 +74,35 @@ class FileManager {
     return null;
   }
 
-  /// This function returns a [List] of [int howMany] recently created files.
-  /// [excludeHidded] means that files that its folder are hidden will not be added
-  Future<List<String>> recentCreatedFiles(int howMany,
+  /// This function creates temporary file on the device.
+  /// Return [File]
+  /// You can call normal [File] methods
+  static Future<File> createTempFile(String name) async {
+    Directory tempDir = await getTemporaryDirectory();
+    return File(p.join(tempDir.path, name));
+  }
+
+  /// * This function returns a [List] of [int howMany] of type [File] of recently created files.
+  /// * [excludeHidded] if [true] hidden files will not be returned
+  Future<List<File>> recentCreatedFiles(int howMany,
       {List<String> extensions,
       List<String> excludedPaths,
       excludeHidden: false}) async {
-    List<String> recents = [];
+    List<File> recents = [];
 
-    List<String> filesPaths =
-        await filesTree(excludedPaths: excludedPaths, extensions: extensions);
+    List<File> filesPaths = await filesTree(
+        excludedPaths: excludedPaths,
+        extensions: extensions,
+        excludeHidden: excludeHidden);
 
     // note: in case that number of recent files are not sufficient, we limit the [howMany]
     // to the number of the found ones
     if (filesPaths.length < howMany) howMany = filesPaths.length;
 
     // adding
-    HashMap<int, String> times = HashMap();
-    filesPaths.forEach((file) => times.addAll(
-        {File(file).statSync().modified.millisecondsSinceEpoch.abs(): file}));
+    HashMap<int, File> times = HashMap();
+    filesPaths.forEach((file) => times
+        .addAll({file.statSync().modified.millisecondsSinceEpoch.abs(): file}));
     for (var i = 0; i <= howMany; i++) {
       var _max = times.keys.toList().reduce(max);
       recents.add(times[_max]);
@@ -91,76 +113,118 @@ class FileManager {
     return recents;
   }
 
+  /// * This function returns a [List] of [int howMany] of type [String] of recently created files.
+  /// * [excludeHidden] hidden files will not be returned
+  Future<List<String>> recentCreatedFilesAsString(int howMany,
+      {List<String> extensions,
+      List<String> excludedPaths,
+      excludeHidden: false}) async {
+    List<String> recents = [];
+
+    List<File> filesPaths = await filesTree(
+        excludedPaths: excludedPaths,
+        extensions: extensions,
+        excludeHidden: excludeHidden);
+
+    // note: in case that number of recent files are not sufficient, we limit the [howMany]
+    // to the number of the found ones
+    if (filesPaths.length < howMany) howMany = filesPaths.length;
+
+    // adding
+    HashMap<int, File> times = HashMap();
+    filesPaths.forEach((file) => times
+        .addAll({file.statSync().modified.millisecondsSinceEpoch.abs(): file}));
+    for (var i = 0; i <= howMany; i++) {
+      var _max = times.keys.toList().reduce(max);
+      recents.add(times[_max].absolute.path);
+
+      times.remove(times.remove(_max));
+    }
+
+    return recents;
+  }
+
   /// Return list tree of directories.
-  /// You may exclude some directories from the list .
-  Future<List<String>> dirsTree(
-      {List<String> excludedPaths, bool followLinks: false}) async {
-    List<String> dirsList = [];
+  /// You may exclude some directories from the list.
+  /// * [excludedPaths] will excluded paths and their subpaths from the final [list]
+  Future<List<Directory>> dirsTree({
+    List<String> excludedPaths,
+    bool followLinks: false,
+    bool excludeHidden: false,
+  }) async {
+    List<Directory> dirs = [];
     var contents;
     try {
       contents = root.listSync(recursive: true, followLinks: followLinks);
-    } catch (e) {
-      print(e);
+    } catch (FileSystemException) {
+      print(_permissionMessage);
     }
 
     try {
       if (excludedPaths != null) {
         for (var fileOrDir in contents) {
           if (fileOrDir is Directory) {
-            if (!RegexTools.deeperPathCheckAll(
-                root.path + r'/' + fileOrDir.path.replaceFirst('.', ''),
-                excludedPaths)) {
-              //print(fileOrDir.path);
-              dirsList.add(p.normalize(fileOrDir.path));
+            for (var excludedPath in excludedPaths) {
+              if (!p.isWithin(excludedPath, p.normalize(fileOrDir.path))) {
+                if (!excludeHidden) {
+                  dirs.add(Directory(p.normalize(fileOrDir.absolute.path)));
+                } else {
+                  if (!fileOrDir.absolute.path.contains(RegExp(r"\.[\w]+"))) {
+                    dirs.add(Directory(p.normalize(fileOrDir.absolute.path)));
+                  }
+                }
+              }
             }
           }
         }
       } else {
         for (var fileOrDir in contents) {
           if (fileOrDir is Directory) {
-            //print(fileOrDir.path);
-            dirsList.add(p.normalize(fileOrDir.path));
+            if (!excludeHidden) {
+              dirs.add(Directory(p.normalize(fileOrDir.absolute.path)));
+            } else {
+              // The Regex below is used to check if the directory contains
+              // ".folder" in pathe
+              if (!fileOrDir.absolute.path.contains(RegExp(r"\.[\w]+"))) {
+                dirs.add(Directory(p.normalize(fileOrDir.absolute.path)));
+              }
+            }
           }
         }
       }
     } catch (e) {
-      //return null;
+      return null;
     }
-    return dirsList;
-  }
-
-  static _buildPath(String path) {
-    String currentDir = '';
-    if (path == '.' &&
-        !path.startsWith(r"\") &&
-        !path.startsWith(r"/") &&
-        !path.startsWith(RegExp('\d:') // for Windows platforms
-            )) {
-      currentDir = Directory.current.path;
-    }
-
-    return currentDir;
+    return dirs;
   }
 
   /// This function returns files' paths list only from  specific location.
-  /// You may specify the types of the files you want to get by supplying the optional
-  /// parameter [extensions].
+  /// * You may specify the types of the files you want to get by supplying the optional
+  /// [extensions].
   ///
-  static Future<List<String>> listFiles(String path,
-      {List<String> extensions}) async {
-    List<String> paths = [];
+  static Future<List<File>> listFiles(String path,
+      {List<String> extensions,
+      followsLinks = false,
+      excludeHidden = false}) async {
+    List<File> files = [];
     List contents =
-        Directory(path).listSync(followLinks: false, recursive: false);
-    //String currentDir = _buildPath(path);
+        Directory(path).listSync(followLinks: followsLinks, recursive: false);
     try {
       if (extensions != null) {
-        Future<List<String>> extensionsPatterns =
-            RegexTools.makeExtensionPatternList(extensions);
+        // Future<List<String>> extensionsPatterns =
+        //     RegexTools.makeExtensionPatterns(extensions);
         for (var fileOrDir in contents) {
           if (fileOrDir is File) {
-            for (var extension in await extensionsPatterns) {
-              if (RegexTools.checkExtension(extension, fileOrDir.path)) {
-                paths.add(p.normalize(path + fileOrDir.path));
+            String file = p.normalize(fileOrDir.path);
+            for (var extension in extensions) {
+              if (p.extension(file).replaceFirst(".", "") ==
+                  extension.replaceFirst('.', '')) {
+                if (excludeHidden) {
+                  if (file.startsWith('.'))
+                    files.add(File(p.normalize(fileOrDir.absolute.path)));
+                } else {
+                  files.add(File(p.normalize(fileOrDir.absolute.path)));
+                }
               }
             }
           }
@@ -168,26 +232,28 @@ class FileManager {
       } else {
         for (var fileOrDir in contents) {
           if (fileOrDir is File) {
-            paths.add(p.normalize(path + fileOrDir.path));
+            files.add(File(p.normalize(fileOrDir.absolute.path)));
           }
         }
       }
     } catch (e) {
       return null;
     }
-    return paths;
+    return files;
   }
 
-  /// This function return list of folders not paths
-  /// [hidden]: this parameter excludes folders starts with " . "
-  /// [excludedFolders]: this parameter excludes folders from the result
-  /// [excludedPaths]: not working currently
-  static Future<List<String>> folderList(Directory root,
+  /// This function return list of folders , not paths, of type [String]
+  /// * [hidden]: this parameter excludes folders starts with " . "
+  /// * [excludedFolders]: this parameter excludes folders from the result
+  /// * [excludedPaths]: not working currently
+  /// * examples: ["Android", "Download", "DCIM", ....]
+  static Future<List<String>> listFolder(Directory root,
       {List<String> excludedFolders,
       List<String> excludedPaths,
       bool hidden: true}) async {
     var dirs = root.listSync(recursive: false, followLinks: false);
     List<String> folders = [];
+
     try {
       for (var dir in dirs) {
         if (dir is Directory) {
@@ -216,28 +282,27 @@ class FileManager {
     return folders;
   }
 
-  /// return [List] directories from specific path
-  /// [hidden] : [true] or [false] return hidden directory, like: "/storage/.thumbnails"
-  /// [true] will return hidden directories
-  static Future<List<String>> getDirectories(String path,
-      {hidden: true}) async {
-    List<String> directories = [];
-    List contents =
-        new Directory(path).listSync(followLinks: false, recursive: false);
-    String currentDir = _buildPath(path);
+  /// Return a [List] of directories starting from the given path
+  /// * [hidden] : [true] or [false] return hidden directory, like: "/storage/.thumbnails"
+  /// * [true] will return hidden directories
+  static Future<List<Directory>> listDirectories(String path,
+      {excludeHidden: false, followLinks = false}) async {
+    List<Directory> directories = [];
+    List contents = new Directory(path)
+        .listSync(followLinks: followLinks, recursive: false);
     try {
-      if (hidden == false) {
+      if (excludeHidden == true) {
         for (var fileOrDir in contents) {
           if (fileOrDir is Directory) {
             if (!fileOrDir.path.startsWith("."))
-              directories.add(p.normalize(currentDir + fileOrDir.path));
+              directories.add(Directory(p.normalize(fileOrDir.absolute.path)));
           }
         }
       } else {
         for (var fileOrDir in contents) {
           if (fileOrDir is Directory) {
             // dir/../dir3 to dir/dir2/dir3
-            directories.add(p.normalize(currentDir + fileOrDir.path));
+            directories.add(Directory(p.normalize(fileOrDir.absolute.path)));
           }
         }
       }
@@ -247,25 +312,90 @@ class FileManager {
     return directories;
   }
 
-  /// return tree [List] of files starting from the root
-  Future<List<String>> filesTree(
-      {List<String> extensions, List<String> excludedPaths}) async {
-    List<String> files = [];
+  /// return tree [List] of files starting from the root of type [File]
+  /// * [excludedPaths] example: '/storage/emulated/0/Android' no files will be
+  /// returned from this path, and its sub directories
+  Future<List<File>> filesTree(
+      {List<String> extensions,
+      List<String> excludedPaths,
+      excludeHidden = false}) async {
+    List<File> files = [];
 
-    List<String> dirs = await dirsTree();
-    dirs.insert(0, root.path);
+    List<Directory> dirs = await dirsTree(
+        excludedPaths: excludedPaths, excludeHidden: excludeHidden);
+
+    dirs.insert(0, Directory(root.path));
 
     try {
       if (extensions != null) {
         for (var dir in dirs) {
-          for (var file in await listFiles(dir, extensions: extensions)) {
-            files.add(file);
+          for (var file
+              in await listFiles(dir.absolute.path, extensions: extensions)) {
+            if (excludeHidden) {
+              if (!file.path.startsWith("."))
+                files.add(file);
+              else
+                print("Excluded: ${file.path}");
+            } else {
+              files.add(file);
+            }
           }
         }
       } else {
         for (var dir in dirs) {
-          for (var file in await listFiles(dir)) {
-            files.add(file);
+          for (var file in await listFiles(dir.absolute.path)) {
+            if (excludeHidden) {
+              if (!file.path.startsWith("."))
+                files.add(file);
+              else
+                print("Excluded: ${file.path}");
+            } else {
+              files.add(file);
+            }
+          }
+        }
+      }
+    } catch (e) {
+      print(e);
+      return null;
+    }
+    return files;
+  }
+
+  /// Return tree files [String] starting from the root of type
+  /// * [excludedPaths] example: '/storage/emulated/0/Android' no files will be
+  /// returned from this path, and its sub directories
+  Future<List<String>> filesTreeAsString(
+      {List<String> extensions,
+      List<String> excludedPaths,
+      excludeHidden = false}) async {
+    List<String> files = [];
+
+    List<Directory> dirs = await dirsTree(
+        excludedPaths: excludedPaths, excludeHidden: excludeHidden);
+    dirs.insert(0, Directory(root.path));
+
+    try {
+      if (extensions != null) {
+        for (var dir in dirs) {
+          for (var file
+              in await listFiles(dir.absolute.path, extensions: extensions)) {
+            if (excludeHidden) {
+              if (!file.path.startsWith(".")) files.add(file.path);
+            } else {
+              files.add(file.path);
+            }
+          }
+        }
+      } else {
+        for (var dir in dirs) {
+          for (var file in await listFiles(dir.absolute.path)) {
+            // hidden files e.g: .bashrc
+            if (excludeHidden) {
+              if (!file.path.startsWith(".")) files.add(file.path);
+            } else {
+              files.add(file.path);
+            }
           }
         }
       }
@@ -289,29 +419,40 @@ class FileManager {
     }
   }
 
-  /// Returns a list of found items or empty list.
+  /// Returns a list of found items of [Directory] or [File] type or empty list.
   /// You may supply `Regular Expression` e.g: "*\.png", instead of string.
-  /// Example:
-  /// List<String> imagesPaths = await FileManager.search("/storage/emulated/0/", "png");
-  Future<List<String>> search(var keyword) async {
+  /// * [filesOnly] if set to [true] return only files
+  /// * [dirsOnly] if set to [true] return only directories
+  /// * You can set both to [true]
+  /// * Example:
+  /// * List<String> imagesPaths = await FileManager.search("myFile.png");
+  ///
+  Future<List<String>> search(var keyword,
+      {List<String> excludedPaths, filesOnly = false, dirsOnly = false, List<String> extensions}) async {
     print("Searching for: $keyword");
     if (keyword.length == 0 || keyword == null) {
       throw Exception("search keyword == null");
     }
-    Future<List<String>> dirs = dirsTree();
-    List<String> files = await filesTree();
-    //print(files);
+    if (filesOnly == false && dirsOnly == false) {
+      filesOnly = true;
+      dirsOnly = true;
+    }
+    List<Directory> dirs = await dirsTree(excludedPaths: excludedPaths);
+    List<File> files = await filesTree(excludedPaths: excludedPaths, extensions: extensions);
     List<String> founds = [];
-    for (var dir in await dirs) {
-      if (RegexTools.searchCheck(dir, keyword)) {
-        founds.add(dir);
+
+    if (dirsOnly == true) {
+      for (var dir in dirs) {
+        if (dir.absolute.path.contains(keyword)) {
+          founds.add(dir.absolute.path);
+        }
       }
     }
-
-    for (var file in files) {
-      if (RegexTools.searchCheck(file, keyword)) {
-        //print(file);
-        founds.add(file);
+    if (filesOnly == true) {
+      for (var file in files) {
+        if (file.absolute.path.contains(keyword)) {
+          founds.add(file.absolute.path);
+        }
       }
     }
     return founds;

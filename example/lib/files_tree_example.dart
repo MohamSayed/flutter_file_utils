@@ -13,7 +13,7 @@ class MyFiles extends StatelessWidget {
           title: Text("External Storage: video files"),
         ),
         body: FutureBuilder(
-            future: buildImages(),
+            future: _getSpecificFileTypes(),
             builder: (BuildContext context, AsyncSnapshot snapshot) {
               if (snapshot.hasData) {
                 return ListView.builder(
@@ -24,7 +24,7 @@ class MyFiles extends StatelessWidget {
                         title: Container(
                             decoration: BoxDecoration(
                                 border: Border(bottom: BorderSide())),
-                            child: Text(snapshot.data[index])));
+                            child: Text(snapshot.data[index].path)));
                   },
                 );
               } else if (snapshot.connectionState == ConnectionState.waiting) {
@@ -35,9 +35,9 @@ class MyFiles extends StatelessWidget {
     );
   }
  // get all files that match these extensions
-  Future buildImages() async {
+  Future _getSpecificFileTypes() async {
     var root = await getExternalStorageDirectory();
-    List<String> files = await FileManager(root: root)
+    var files = await FileManager(root: root)
         .filesTree(extensions: ["txt", "3gp", "zip", "png"]);
     return files;
   }

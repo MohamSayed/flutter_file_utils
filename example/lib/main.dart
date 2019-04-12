@@ -30,7 +30,7 @@ class _MyAppState extends State<MyApp> {
                   itemCount: snapshot.data.length,
 
                   itemBuilder: (context, index) {
-                    return Image.file(File(snapshot.data[index]));
+                    return Image.file(snapshot.data[index]);
                   },
                 );
               } else if (snapshot.connectionState == ConnectionState.waiting) {
@@ -43,7 +43,7 @@ class _MyAppState extends State<MyApp> {
 
   Future buildImages() async {
     var root = await getExternalStorageDirectory();
-    List<String> files =
+    var files =
         await FileManager(root: root).filesTree(extensions: ["png", "jpg"]);
   
     return files;

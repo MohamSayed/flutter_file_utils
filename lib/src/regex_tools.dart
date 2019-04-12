@@ -1,6 +1,7 @@
 import 'dart:async';
 
 class RegexTools {
+  
   static bool checkExtension(String ext, String path) {
     /// return true if the path includes ext value
     RegExp exp = new RegExp(ext);
@@ -24,14 +25,6 @@ class RegexTools {
   }
 
   static bool deeperPathCheckAll(String mainPath, List<String> deeperPath) {
-    //print(mainPath);
-    /*RegExp exp = RegExp(mainPath);
-
-    for (var path in deeperPath) {
-      try {
-        if (exp.allMatches(path).first.group(0).length > 0) return true;
-      } catch (e) {}
-    }*/
     for (var path in deeperPath) {
       if (path.allMatches(mainPath).length > 0) return true;
     }
@@ -50,7 +43,7 @@ class RegexTools {
     return "\.$name\$";
   }
 
-  static Future<List<String>> makeExtensionPatternList(List<String> names) async{
+  static Future<List<String>> makeExtensionPatterns(List<String> names) async{
     List<String> extensionsPatterns = [];
     for (var extension in names) {
       extensionsPatterns.add(RegexTools.makeExtensionPattern(extension));
