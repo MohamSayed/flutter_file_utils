@@ -104,15 +104,16 @@ and grant storage permissions to your applicaion from app settings
     // to the number of the found ones
     if (filesPaths.length < howMany) howMany = filesPaths.length;
 
-    filesPaths.sort((file1, file2) {
-      return file1.statSync().modified.compareTo(file2.statSync().modified);
-    });
+    var _sorted = sortBy(filesPaths, 'type');
+
     // decrease length to howMany
-    _recents = _recents..getRange(0, howMany);
+    _sorted = _sorted.getRange(0, howMany).toList();
+
     if (sortedBy != null) {
-      return sortBy(_recents, sortedBy, reversed: reversed);
+      return sortBy(filesPaths, sortedBy, reversed: reversed);
     }
-    return _recents;
+
+    return _sorted;
   }
 
   /// This function returns a [List] of [int howMany] of type [String] of recently created files.
@@ -124,7 +125,7 @@ and grant storage permissions to your applicaion from app settings
       List<String> excludedPaths,
       excludeHidden: false,
       String sortedBy,
-      bool reversed}) async {
+      bool reversed: false}) async {
     List<String> _recents = [];
 
     List<File> filesPaths = await filesTree(
@@ -134,25 +135,16 @@ and grant storage permissions to your applicaion from app settings
 
     // note: in case that number of recent files are not sufficient, we limit the [howMany]
     // to the number of the found ones
+    if (filesPaths.length < howMany) howMany = filesPaths.length;
 
-    if (filesPaths.length <= howMany) howMany = filesPaths.length;
-
-    filesPaths.sort((file1, file2) {
-      return file1.statSync().modified.compareTo(file2.statSync().modified);
-    });
-
-    // transforming to String type
-    filesPaths.forEach((f) {
-      _recents.add(f.path);
-    });
+    var _sorted = sortBy(filesPaths, 'type');
 
     // decrease length to howMany
-    _recents = _recents..getRange(0, howMany);
-    if (_recents != null) {
-      return sortByFromStringList(
-          _recents.map((recent) => p.join(root.absolute.path, recent)).toList(),
-          sortedBy,
-          reversed: reversed);
+    _sorted = _sorted.getRange(0, howMany).toList();
+    _sorted.forEach((f) => _recents.add(f.path));
+
+    if (sortedBy != null) {
+      return sortBy(filesPaths, sortedBy, reversed: reversed);
     }
     return _recents;
   }
@@ -493,13 +485,15 @@ and grant storage permissions to your applicaion from app settings
   /// * [bool] reversed: in case parameter sortedBy is used
   /// * Example:
   /// * List<String> imagesPaths = await FileManager.search("myFile.png");
-  Future<List<String>> search(var keyword,
-      {List<String> excludedPaths,
-      filesOnly = false,
-      dirsOnly = false,
-      List<String> extensions,
-      bool reversed: false,
-      String sortedBy}) async {
+  Future<List<String>> search(
+    var keyword, {
+    List<String> excludedPaths,
+    filesOnly = false,
+    dirsOnly = false,
+    List<String> extensions,
+    bool reversed: false,
+    String sortedBy,
+  }) async {
     print("Searching for: $keyword");
     if (keyword.length == 0 || keyword == null) {
       throw Exception("search keyword == null");
@@ -515,6 +509,8 @@ and grant storage permissions to your applicaion from app settings
     // files that will be returned
     List<String> founds = [];
 
+    // in the future fileAndDirTree will be used
+    // searching in files
     if (dirsOnly == true) {
       for (var dir in dirs) {
         if (dir.absolute.path.contains(keyword)) {
@@ -522,6 +518,8 @@ and grant storage permissions to your applicaion from app settings
         }
       }
     }
+    // searching in files
+
     if (filesOnly == true) {
       for (var file in files) {
         if (file.absolute.path.contains(keyword)) {
@@ -530,8 +528,9 @@ and grant storage permissions to your applicaion from app settings
       }
     }
 
+    // sorting
     if (sortedBy != null) {
-      return sortBy(founds, sortedBy);
+      return sortByFromStringList(founds, sortedBy);
     }
     return founds;
   }
@@ -553,8 +552,9 @@ and grant storage permissions to your applicaion from app settings
     }
   }
 
-  /// objects = [File] or [Directory]
-  /// argument [by] [String]: 'date', 'alpha', 'size'
+  // returns [File] or [Directory]
+  /// * argument objects = [File] or [Directory]
+  /// * argument by [String]: 'date', 'alpha', 'size'
   static List<dynamic> sortBy(List<dynamic> objects, String by,
       {bool reversed: false}) {
     switch (by) {
@@ -655,13 +655,10 @@ and grant storage permissions to your applicaion from app settings
       if (extensions != null) {
         for (var object in _rawTree) {
           if (object is File) {
-            for (var file in await listFiles(object.absolute.path,
-                extensions: extensions)) {
-              if (excludeHidden) {
-                if (!file.path.startsWith(".")) tree.add(file);
-              } else {
-                tree.add(file);
-              }
+            if (excludeHidden) {
+              if (!object.path.startsWith(".")) tree.add(object);
+            } else {
+              tree.add(object);
             }
             // directory
           } else {

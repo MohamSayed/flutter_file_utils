@@ -118,6 +118,7 @@ class MyApp extends StatelessWidget {
 * delete files
 * delete directory
 * temp file
+* Sorting file by: type, size, date, ..
 
 ### Contributors
 
