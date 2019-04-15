@@ -104,7 +104,7 @@ and grant storage permissions to your applicaion from app settings
     // to the number of the found ones
     if (filesPaths.length < howMany) howMany = filesPaths.length;
 
-    var _sorted = sortBy(filesPaths, 'type');
+    var _sorted = sortBy(filesPaths, 'date', reversed: true);
 
     // decrease length to howMany
     _sorted = _sorted.getRange(0, howMany).toList();
@@ -137,10 +137,12 @@ and grant storage permissions to your applicaion from app settings
     // to the number of the found ones
     if (filesPaths.length < howMany) howMany = filesPaths.length;
 
-    var _sorted = sortBy(filesPaths, 'type');
+    var _sorted = sortBy(filesPaths, 'date', reversed: true);
 
     // decrease length to howMany
     _sorted = _sorted.getRange(0, howMany).toList();
+
+    // to string
     _sorted.forEach((f) => _recents.add(f.path));
 
     if (sortedBy != null) {
