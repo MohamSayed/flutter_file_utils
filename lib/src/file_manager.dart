@@ -2,27 +2,26 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:io';
-import 'dart:math';
 
 // packages
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 // local files
-import './time_tools.dart';
+import 'package:flutter_file_manager/src/time_tools.dart';
 
 class FileManager {
   Directory root;
   String _permissionMessage = '''
-\n\n
- Try to add thes lines to your AndroidManifest.xml file
+    \n
+    Try to add thes lines to your AndroidManifest.xml file
 
-      `<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>`
-      `<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>`
+          `<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>`
+          `<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>`
 
-and grant storage permissions to your applicaion from app settings
-\n
-''';
+    and grant storage permissions to your applicaion from app settings
+    \n
+    ''';
   FileManager({this.root}) : assert(root != null);
 
   /// Returns a [HashMap] containing detials of the file or the directory.
@@ -93,8 +92,6 @@ and grant storage permissions to your applicaion from app settings
       excludeHidden: false,
       String sortedBy,
       bool reversed: false}) async {
-    List<File> _recents = [];
-
     List<File> filesPaths = await filesTree(
         excludedPaths: excludedPaths,
         extensions: extensions,
@@ -220,7 +217,8 @@ and grant storage permissions to your applicaion from app settings
       {List<String> extensions,
       followsLinks = false,
       excludeHidden = false,
-      String sortedBy}) async {
+      String sortedBy,
+      bool reversed: false}) async {
     List<File> files = [];
     List contents =
         Directory(path).listSync(followLinks: followsLinks, recursive: false);
@@ -350,7 +348,7 @@ and grant storage permissions to your applicaion from app settings
     return directories;
   }
 
-  /// return tree [List] of files starting from the root of type [File]
+  /// Return tree [List] of files starting from the root of type [File]
   /// * [excludedPaths] example: '/storage/emulated/0/Android' no files will be
   /// returned from this path, and its sub directories
   /// * sortedBy: 'type', 'size', 'date', 'alpha'
