@@ -253,7 +253,7 @@ class FileManager {
       return null;
     }
     if (files != null) {
-      return sortBy(files, sortedBy);
+      return sortBy(files, sortedBy, reversed: reversed);
     }
 
     return files;
