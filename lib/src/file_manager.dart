@@ -220,7 +220,8 @@ and grant storage permissions to your applicaion from app settings
       {List<String> extensions,
       followsLinks = false,
       excludeHidden = false,
-      String sortedBy}) async {
+      String sortedBy,
+      bool reversed: false}) async {
     List<File> files = [];
     List contents =
         Directory(path).listSync(followLinks: followsLinks, recursive: false);
@@ -255,7 +256,7 @@ and grant storage permissions to your applicaion from app settings
       return null;
     }
     if (files != null) {
-      return sortBy(files, sortedBy);
+      return sortBy(files, sortedBy, reversed: reversed);
     }
 
     return files;
