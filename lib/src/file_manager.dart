@@ -485,7 +485,7 @@ class FileManager {
   /// * [bool] reversed: in case parameter sortedBy is used
   /// * Example:
   /// * List<String> imagesPaths = await FileManager.search("myFile.png");
-  Future<List<String>> search(
+  Future<List<dynamic>> search(
     var keyword, {
     List<String> excludedPaths,
     filesOnly = false,
@@ -498,23 +498,25 @@ class FileManager {
     if (keyword.length == 0 || keyword == null) {
       throw Exception("search keyword == null");
     }
+
     if (filesOnly == false && dirsOnly == false) {
       filesOnly = true;
       dirsOnly = true;
     }
+
     List<Directory> dirs = await dirsTree(excludedPaths: excludedPaths);
     List<File> files =
         await filesTree(excludedPaths: excludedPaths, extensions: extensions);
 
     // files that will be returned
-    List<String> founds = [];
+    List<dynamic> founds = [];
 
     // in the future fileAndDirTree will be used
     // searching in files
     if (dirsOnly == true) {
       for (var dir in dirs) {
         if (dir.absolute.path.contains(keyword)) {
-          founds.add(dir.absolute.path);
+          founds.add(dir);
         }
       }
     }
@@ -523,14 +525,14 @@ class FileManager {
     if (filesOnly == true) {
       for (var file in files) {
         if (file.absolute.path.contains(keyword)) {
-          founds.add(file.absolute.path);
+          founds.add(file);
         }
       }
     }
 
     // sorting
     if (sortedBy != null) {
-      return sortByFromStringList(founds, sortedBy);
+      return sortBy(founds, sortedBy);
     }
     return founds;
   }
