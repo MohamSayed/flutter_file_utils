@@ -1,0 +1,20 @@
+name: example
+version: 1.0.0
+homepage: https://github.com/Eagle6789/flutter_file_manager
+author: Mohamed Naga me.dev6789@gmail.com>
+
+environment:
+  sdk: ">=2.0.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  provider: 0.1.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+dependency_overrides:
+  flutter_file_manager:
+    path: ../
