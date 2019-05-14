@@ -495,22 +495,22 @@ class FileManager {
     String sortedBy,
   }) async {
     print("Searching for: $keyword");
+    // files that will be returned
+    List<dynamic> founds = [];
+
     if (keyword.length == 0 || keyword == null) {
       throw Exception("search keyword == null");
-    }
-
-    if (filesOnly == false && dirsOnly == false) {
-      filesOnly = true;
-      dirsOnly = true;
     }
 
     List<Directory> dirs = await dirsTree(excludedPaths: excludedPaths);
     List<File> files =
         await filesTree(excludedPaths: excludedPaths, extensions: extensions);
 
-    // files that will be returned
-    List<dynamic> founds = [];
-
+    if (filesOnly == false && dirsOnly == false) {
+      filesOnly = true;
+      dirsOnly = true;
+    }
+    if (extensions.isNotEmpty) dirsOnly = false;
     // in the future fileAndDirTree will be used
     // searching in files
     if (dirsOnly == true) {
