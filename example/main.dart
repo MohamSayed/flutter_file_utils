@@ -26,7 +26,6 @@ class _MyAppState extends State<MyApp> {
                     crossAxisSpacing: 0.0,
                     mainAxisSpacing: 0.0,
                   ),
-                  primary: false,
                   itemCount: snapshot.data.length,
                   itemBuilder: (context, index) {
                     return Image.file(snapshot.data[index]);
