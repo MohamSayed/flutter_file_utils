@@ -34,7 +34,7 @@ class FileManager {
   /// * lastAccessed
   /// * extension
   /// you can use details from [Directory] or [File] instead
-  static Future<HashMap> fileDetails(String path) async {
+  static Future<HashMap> details(String path) async {
     HashMap detailsList = HashMap();
     if (path == null ||
         (!Directory(path).existsSync() && !File(path).existsSync())) {
@@ -265,10 +265,10 @@ class FileManager {
   /// * sortedBy: 'type', 'size', 'date', 'alpha'
   /// * [bool] reversed: in case parameter sortedBy is used
   /// * examples: ["Android", "Download", "DCIM", ....]
-  static Future<List<String>> listFolder(Directory root,
+  static Future<List<String>> listFolders(Directory root,
       {List<String> excludedFolders,
       List<String> excludedPaths,
-      bool hidden: true,
+      bool excludeHidden: false,
       String sortedBy,
       bool reversed: false}) async {
     var dirs = root.listSync(recursive: false, followLinks: false);
@@ -277,10 +277,10 @@ class FileManager {
     try {
       for (var dir in dirs) {
         if (dir is Directory) {
-          String folder = dir.path.toString().split(r"/").last;
+          String folder = p.split(dir.absolute.path).last;
           if (excludedFolders != null) {
             if (!excludedFolders.contains(folder)) {
-              if (hidden == false) {
+              if (excludeHidden == true) {
                 if (!folder.startsWith(".")) {
                   folders.add(dir.path.toString().split(r"/").last);
                 } else
@@ -288,7 +288,7 @@ class FileManager {
               }
             }
           } else {
-            if (hidden == false) {
+            if (excludeHidden == true) {
               if (!folder.startsWith(".")) folders.add(folder);
             } else
               folders.add(folder);
@@ -301,7 +301,8 @@ class FileManager {
     }
     if (folders != null) {
       return sortByFromStringList(
-          folders.map((folder) => p.join(root.absolute.path, folder)), sortedBy,
+          folders.map((folder) => p.join(root.absolute.path, folder)).toList(),
+          sortedBy,
           reversed: reversed);
     }
 
@@ -350,7 +351,7 @@ class FileManager {
 
   /// Return tree [List] of files starting from the root of type [File]
   /// * [excludedPaths] example: '/storage/emulated/0/Android' no files will be
-  /// returned from this path, and its sub directories
+  ///   returned from this path, and its sub directories
   /// * sortedBy: 'type', 'size', 'date', 'alpha'
   /// * [bool] reversed: in case parameter sortedBy is used
   Future<List<File>> filesTree(
@@ -409,7 +410,7 @@ class FileManager {
 
   /// Return tree files [String] starting from the root of type
   /// * [excludedPaths] example: '/storage/emulated/0/Android' no files will be
-  /// returned from this path, and its sub directories
+  ///   returned from this path, and its sub directories
   /// * sortedBy: 'type', 'size', 'date', 'alpha'
   /// * [bool] reversed: in case parameter sortedBy is used
   Future<List<String>> filesTreeAsStringList(
@@ -704,5 +705,23 @@ class FileManager {
     }
 
     return tree;
+  }
+
+  /// * This function returns a [List] of [int howMany] of type [File] of recently created files.
+  /// * [excludeHidded] if [true] hidden files will not be returned
+  /// * sortedBy: 'type', 'size', 'date', 'alpha'
+  /// * [bool] reversed: in case parameter sortedBy is used
+  Stream<List<File>> recentCreatedFilesStream(int howMany,
+      {List<String> extensions,
+      List<String> excludedPaths,
+      excludeHidden: false,
+      String sortedBy,
+      bool reversed: false}) async* {
+    Stream paths = Directory(root.path)
+        .list(recursive: true)
+        .transform(StreamTransformer.fromHandlers(handleData: (data, sink) {
+      if (data is File) sink.add(data);
+    }));
+ 
   }
 }
