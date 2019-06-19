@@ -24,8 +24,13 @@ class FileManager {
     ''';
   FileManager({this.root}) : assert(root != null);
 
-  /// Returns a [HashMap] containing detials of the file or the directory.
-  /// keys list:
+  /// Returns a [HashMap] containing detials of the file or the directory
+  /// in organised style. you can use details from [Directory] or
+  /// [File] instead this function.
+  /// ### arguments
+  /// * [path] should be of [File] or [Directory]
+  ///
+  /// ### keys
   /// * type
   /// * lastChanged
   /// * lastModified
@@ -33,51 +38,50 @@ class FileManager {
   /// * permissions
   /// * lastAccessed
   /// * extension
-  /// you can use details from [Directory] or [File] instead
-  static Future<HashMap> details(String path) async {
-    HashMap detailsList = HashMap();
-    if (path == null ||
-        (!Directory(path).existsSync() && !File(path).existsSync())) {
+  /// * path
+  static Future<HashMap> details(dynamic path) async {
+    HashMap _details = HashMap();
+    if (path == null || (!path.existsSync() && !File(path).existsSync())) {
       print("file or dir does not exists");
       return null;
       // directory
-    } else if (Directory(path).existsSync()) {
+    } else if (path.existsSync()) {
       // directory or file
-      detailsList["type"] = Directory(path).statSync().type.toString();
-      detailsList["lastChanged"] =
-          TimeTools.timeNormalize(Directory(path).statSync().changed);
-      detailsList["lastModified"] = TimeTools.timeNormalize(
+      _details["type"] = path.statSync().type.toString();
+      _details["lastChanged"] =
+          TimeTools.timeNormalize(path.statSync().changed);
+      _details["lastModified"] = TimeTools.timeNormalize(
           Directory.fromUri(Uri.parse(path)).statSync().modified);
-      detailsList["size"] = Directory(path).statSync().size;
-      detailsList["type"] = Directory(path).statSync().type.toString();
-      detailsList["lastAccessed"] =
-          TimeTools.timeNormalize(Directory(path).statSync().accessed);
-      detailsList["permissions"] = Directory(path).statSync().modeString();
-      detailsList["path"] = path;
+      _details["size"] = path.statSync().size;
+      _details["type"] = path.statSync().type.toString();
+      _details["lastAccessed"] =
+          TimeTools.timeNormalize(path.statSync().accessed);
+      _details["permissions"] = path.statSync().modeString();
+      _details["path"] = path;
 
-      return detailsList;
+      return _details;
       // file
     } else if (File(path).existsSync()) {
       var fileStat = File(path).statSync();
       // directory or file
-      detailsList["lastModified"] = TimeTools.timeNormalize(fileStat.modified);
-      detailsList["lastAccessed"] = TimeTools.timeNormalize(fileStat.accessed);
-      detailsList["lastChanged"] = TimeTools.timeNormalize(fileStat.changed);
-      detailsList["type"] = fileStat.type.toString();
-      detailsList["size"] = fileStat.size;
-      detailsList["permissions"] = fileStat.modeString();
-      detailsList["extension"] = p.extension(path).replaceFirst('.', '');
-      detailsList["path"] = path;
+      _details["lastModified"] = TimeTools.timeNormalize(fileStat.modified);
+      _details["lastAccessed"] = TimeTools.timeNormalize(fileStat.accessed);
+      _details["lastChanged"] = TimeTools.timeNormalize(fileStat.changed);
+      _details["type"] = fileStat.type.toString();
+      _details["size"] = fileStat.size;
+      _details["permissions"] = fileStat.modeString();
+      _details["extension"] = p.extension(path.path).replaceFirst('.', '');
+      _details["path"] = path;
 
-      return detailsList;
+      return _details;
     }
     return null;
   }
 
-  /// This function creates temporary file on the device.
+  /// This function creates temporary file on the device storage
   /// Return [File]
   /// You can call normal [File] methods
-  static Future<File> createTempFile(String name) async {
+  static Future<File> createCacheFile(String name) async {
     Directory tempDir = await getTemporaryDirectory();
     return File(p.join(tempDir.path, name));
   }
@@ -259,53 +263,27 @@ class FileManager {
     return files;
   }
 
-  /// This function return list of folders of type [String] , not paths of [Directory].
+  /// This function return list of folders of type [String] , not full paths [Directory].
+  /// * e.g: listFolders(Directory("/")) = root, usr, var, proc, mnt ...
   /// * [hidden]: this parameter excludes folders starts with " . "
   /// * [excludedFolders]: this parameter excludes folders from the result
   /// * sortedBy: 'type', 'size', 'date', 'alpha'
   /// * [bool] reversed: in case parameter sortedBy is used
   /// * examples: ["Android", "Download", "DCIM", ....]
-  static Future<List<String>> listFolders(Directory root,
+  static Future<List<String>> listFolders(Directory path,
       {List<String> excludedFolders,
       List<String> excludedPaths,
       bool excludeHidden: false,
+      followLinks: false,
       String sortedBy,
       bool reversed: false}) async {
-    var dirs = root.listSync(recursive: false, followLinks: false);
-    List<String> folders = [];
-
-    try {
-      for (var dir in dirs) {
-        if (dir is Directory) {
-          String folder = p.split(dir.absolute.path).last;
-          if (excludedFolders != null) {
-            if (!excludedFolders.contains(folder)) {
-              if (excludeHidden == true) {
-                if (!folder.startsWith(".")) {
-                  folders.add(dir.path.toString().split(r"/").last);
-                } else
-                  folders.add(dir.path.toString().split(r"/").last);
-              }
-            }
-          } else {
-            if (excludeHidden == true) {
-              if (!folder.startsWith(".")) folders.add(folder);
-            } else
-              folders.add(folder);
-          }
-        }
-      }
-    } catch (e) {
-      print(e);
-      return null;
-    }
-    if (folders != null) {
-      return sortByFromStringList(
-          folders.map((folder) => p.join(root.absolute.path, folder)).toList(),
-          sortedBy,
-          reversed: reversed);
-    }
-
+    List<String> folders = (await listDirectories(path,
+            excludeHidden: excludeHidden,
+            followLinks: false,
+            reversed: reversed,
+            sortedBy: sortedBy))
+        .map((Directory directory) => p.split(directory.absolute.path).last)
+        .toList();
     return folders;
   }
 
@@ -314,15 +292,13 @@ class FileManager {
   /// * [true] will return hidden directories
   /// * sortedBy: 'type', 'size', 'date', 'alpha'
   /// * [bool] reversed: in case parameter sortedBy is used
-
-  static Future<List<Directory>> listDirectories(String path,
+  static Future<List<Directory>> listDirectories(Directory path,
       {excludeHidden: false,
       followLinks = false,
       String sortedBy,
       bool reversed: false}) async {
     List<Directory> directories = [];
-    List contents = new Directory(path)
-        .listSync(followLinks: followLinks, recursive: false);
+    List contents = path.listSync(followLinks: followLinks, recursive: false);
     try {
       if (excludeHidden == true) {
         for (var fileOrDir in contents) {
@@ -666,7 +642,7 @@ class FileManager {
             // directory
           } else {
             for (var dir in await listDirectories(
-              object.absolute.path,
+              object,
             )) {
               if (excludeHidden) {
                 if (!dir.path.startsWith(".")) tree.add(dir);
@@ -688,7 +664,7 @@ class FileManager {
             }
           } else {
             for (var dir in await listDirectories(
-              object.absolute.path,
+              object,
             )) {
               if (excludeHidden) {
                 if (!dir.path.startsWith(".")) tree.add(dir);
@@ -705,23 +681,5 @@ class FileManager {
     }
 
     return tree;
-  }
-
-  /// * This function returns a [List] of [int howMany] of type [File] of recently created files.
-  /// * [excludeHidded] if [true] hidden files will not be returned
-  /// * sortedBy: 'type', 'size', 'date', 'alpha'
-  /// * [bool] reversed: in case parameter sortedBy is used
-  Stream<List<File>> recentCreatedFilesStream(int howMany,
-      {List<String> extensions,
-      List<String> excludedPaths,
-      excludeHidden: false,
-      String sortedBy,
-      bool reversed: false}) async* {
-    Stream paths = Directory(root.path)
-        .list(recursive: true)
-        .transform(StreamTransformer.fromHandlers(handleData: (data, sink) {
-      if (data is File) sink.add(data);
-    }));
- 
   }
 }
