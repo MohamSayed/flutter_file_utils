@@ -13,26 +13,25 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
-
     return MaterialApp(
       home: Scaffold(
+        appBar: AppBar(
+          title: Text("Flutter File Manager Example App"),
+        ),
         body: FutureBuilder(
             future: buildImages(),
             builder: (BuildContext context, AsyncSnapshot snapshot) {
               if (snapshot.connectionState == ConnectionState.done) {
-                return GridView.builder(
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    crossAxisSpacing: 0.0,
-                    mainAxisSpacing: 0.0,
-                  ),
-                  itemCount: snapshot.data.length,
+                return ListView.builder(
+                  itemCount: snapshot?.data?.length ?? 0,
                   itemBuilder: (context, index) {
-                    return Image.file(snapshot.data[index]);
+                    return ListTile(
+                      title: Text(snapshot.data[index].path.split('/').last),
+                    );
                   },
                 );
               } else if (snapshot.connectionState == ConnectionState.waiting) {
-                return Text("Loading");
+                return Center(child: Text("Loading"));
               }
             }),
       ),
@@ -41,9 +40,7 @@ class _MyAppState extends State<MyApp> {
 
   Future buildImages() async {
     var root = await getExternalStorageDirectory();
-    var files =
-        await FileManager(root: root).filesTree(extensions: ["png", "jpg"]);
-
+    var files = await FileManager(root: root).walk();
     return files;
   }
 }
