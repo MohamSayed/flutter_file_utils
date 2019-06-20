@@ -1,6 +1,8 @@
 library flutter_file_manager;
 
-export 'src/sorting.dart' show FileManagerSorting;
+// exporting everything from this dart file
+export 'src/sorting.dart';
 
-export 'src/file_manager.dart' show FileManager;
+// exporting everything from this dart file
+export 'src/file_manager.dart';
 
