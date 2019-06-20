@@ -31,7 +31,7 @@ dependencies:
     sdk: flutter
   path: 1.6.2
   path_provider: 0.5.0+1
-  flutter_file_manager: ^0.1.1
+  flutter_file_manager: ^0.2.0
 ```
 
 And, add read / write permissions in your
@@ -45,65 +45,62 @@ And, add read / write permissions in your
 Don't forget to grant `Storage` permissions to your app, manually or by this plugin [simple_permissions](https://pub.dartlang.org/packages/simple_permissions)
 
 ```dart
+// dart files
+import 'dart:async';
+
 // framework
 import 'package:flutter/material.dart';
 
 // packages
-import 'package:flutter_file_manager/flutter_file_manager.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as p;
+import 'package:flutter_file_manager/flutter_file_manager.dart';
+import 'package:simple_permissions/simple_permissions.dart';
 
 void main() => runApp(new MyApp());
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
-    return new MaterialApp(
+    SimplePermissions.requestPermission(Permission.ReadExternalStorage);
+    return MaterialApp(
       home: Scaffold(
-          appBar: AppBar(
-            title: Text("Flutter File Manager Demo"),
-          ),
-          body: FutureBuilder(
-            future: _files(), // a previously-obtained Future<String> or null
+        appBar: AppBar(
+          title: Text("Flutter File Manager Example"),
+        ),
+        body: FutureBuilder(
+            future: buildImages(),
             builder: (BuildContext context, AsyncSnapshot snapshot) {
-              switch (snapshot.connectionState) {
-                case ConnectionState.none:
-                  return Text('Press button to start.');
-                case ConnectionState.active:
-                case ConnectionState.waiting:
-                  return Text('Awaiting result...');
-                case ConnectionState.done:
-                  if (snapshot.hasError)
-                    return Text('Error: ${snapshot.error}');
-                  return snapshot.data != null
-                      ? ListView.builder(
-                          itemCount: snapshot.data.length,
-                          itemBuilder: (context, index) => Card(
-                                  child: ListTile(
-                                title: Text(snapshot.data[index].absolute.path),
-                                subtitle: Text(
-                                    "Extension: ${p.extension(snapshot.data[index].absolute.path).replaceFirst('.', '')}"), // getting extension
-                              )))
-                      : Center(
-                          child: Text("Nothing!"),
-                        );
+              if (snapshot.connectionState == ConnectionState.done) {
+                return ListView.builder(
+                  itemCount: snapshot.data?.length ?? 0,
+                  itemBuilder: (context, index) {
+                    return ListTile(
+                      title: Text(snapshot.data[index].path.split('/').last),
+                    );
+                  },
+                );
+              } else if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: Text("Loading"));
               }
-              return null; // unreachable
-            },
-          )),
+            }),
+      ),
     );
   }
 
-  _files() async {
+  Future buildImages() async {
     var root = await getExternalStorageDirectory();
-    var fm = FileManager(root: root);
-    var files = await fm.filesTree(excludedPaths: ["/storage/emulated/0/Android"]);
+    var files = await FileManager(root: root).walk();
     return files;
   }
 }
+
 ```
 
-### Example
+### Examples
 
 * [examples](https://github.com/Eagle6789/flutter_file_manager/tree/master/example/lib)
 

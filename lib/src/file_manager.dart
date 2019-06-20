@@ -103,7 +103,7 @@ class FileManager {
         }
       }
     } catch (error) {
-      FileManagerError(permissionMessage + error.toString());
+      throw FileManagerError(permissionMessage + error.toString());
     }
     if (dirs != null) {
       return sortBy(dirs, sortedBy);
@@ -175,17 +175,17 @@ class FileManager {
     try {
       file.delete();
     } catch (error) {
-      FileManagerError(error.toString());
+      throw FileManagerError(error.toString());
     }
   }
 
   /// return tree [List] of files starting from the root of type [File]
   /// * [excludedPaths] example: '/storage/emulated/0/Android' no files will be
-  /// returned from this path, and its sub directories
+  /// included in the list from this path, and its sub directories
   Future<List<dynamic>> walk({
     List<String> extensions,
     List<String> excludedPaths,
-    excludeHidden = false,
+    bool excludeHidden: false,
   }) async {
     List<dynamic> tree = [];
     tree.insert(0, Directory(root.path));
@@ -237,7 +237,7 @@ class FileManager {
         }
       }
     } catch (error) {
-      FileManagerError(permissionMessage + error.toString());
+      throw FileManagerError(permissionMessage + error.toString());
     }
 
     return tree;
@@ -317,9 +317,7 @@ class FileManager {
       file.delete(recursive: recursive);
       return true;
     } catch (error) {
-      FileManagerError(error.toString());
-      // could not delete the file then return false
-      return false;
+      throw FileManagerError(error.toString());
     }
   }
 
@@ -483,7 +481,7 @@ class FileManager {
         }
       }
     } catch (error) {
-      FileManagerError(error.toString());
+      throw FileManagerError(error.toString());
     }
     if (files != null) {
       return sortBy(files, sortedBy, reversed: reversed);
@@ -546,7 +544,7 @@ class FileManager {
         }
       }
     } catch (error) {
-      FileManagerError(permissionMessage + error.toString());
+      throw FileManagerError(permissionMessage + error.toString());
     }
     if (directories != null) {
       return sortBy(directories, sortedBy);

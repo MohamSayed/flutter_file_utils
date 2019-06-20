@@ -1,3 +1,9 @@
+# [0.2.0]
+
+* Restructuring
+* Improvements
+* ...
+
 # [0.1.1]
 
 * fix bugs
