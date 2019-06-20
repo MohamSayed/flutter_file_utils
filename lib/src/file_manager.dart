@@ -28,7 +28,7 @@ class FileManager {
 
   /// * This function returns a [List] of [int howMany] of type [File] of recently created files.
   /// * [excludeHidded] if [true] hidden files will not be returned
-  /// * sortedBy: 'type', 'size', 'date', 'alpha'
+  /// * sortedBy: [FileManagerSorting]
   /// * [bool] reversed: in case parameter sortedBy is used
   Future<List<File>> recentCreatedFiles(int count,
       {List<String> extensions,
@@ -60,7 +60,7 @@ class FileManager {
   /// Return list tree of directories.
   /// You may exclude some directories from the list.
   /// * [excludedPaths] will excluded paths and their subpaths from the final [list]
-  /// * sortedBy: 'type', 'size', 'date', 'alpha'
+  /// * sortedBy: [FileManagerSorting]
   /// * [bool] reversed: in case parameter sortedBy is used
   Future<List<Directory>> dirsTree(
       {List<String> excludedPaths,
@@ -103,7 +103,7 @@ class FileManager {
         }
       }
     } catch (error) {
-      FileManagerError(permissionMessage + error);
+      FileManagerError(permissionMessage + error.toString());
     }
     if (dirs != null) {
       return sortBy(dirs, sortedBy);
@@ -115,7 +115,7 @@ class FileManager {
   /// Return tree [List] of files starting from the root of type [File]
   /// * [excludedPaths] example: '/storage/emulated/0/Android' no files will be
   ///   returned from this path, and its sub directories
-  /// * sortedBy: 'type', 'size', 'date', 'alpha'
+  /// * sortedBy: [FileManagerSorting]
   /// * [bool] reversed: in case parameter sortedBy is used
   Future<List<File>> filesTree(
       {List<String> extensions,
@@ -175,7 +175,7 @@ class FileManager {
     try {
       file.delete();
     } catch (error) {
-      FileManagerError(error);
+      FileManagerError(error.toString());
     }
   }
 
@@ -237,7 +237,7 @@ class FileManager {
         }
       }
     } catch (error) {
-      FileManagerError(permissionMessage + error);
+      FileManagerError(permissionMessage + error.toString());
     }
 
     return tree;
@@ -248,7 +248,7 @@ class FileManager {
   /// * [filesOnly] if set to [true] return only files
   /// * [dirsOnly] if set to [true] return only directories
   /// * You can set both to [true]
-  /// * sortedBy: 'type', 'size', 'date', 'alpha'
+  /// * sortedBy: [FileManagerSorting]
   /// * [bool] reversed: in case parameter sortedBy is used
   /// * Example:
   /// * List<String> imagesPaths = await FileManager.search("myFile.png");
@@ -317,7 +317,7 @@ class FileManager {
       file.delete(recursive: recursive);
       return true;
     } catch (error) {
-      FileManagerError(error);
+      FileManagerError(error.toString());
       // could not delete the file then return false
       return false;
     }
@@ -443,7 +443,7 @@ class FileManager {
   /// This function returns files' paths list only from  specific location.
   /// * You may specify the types of the files you want to get by supplying the optional
   /// [extensions].
-  /// * sortedBy: 'type', 'size', 'date', 'alpha'
+  /// * sortedBy: [FileManagerSorting]
   /// * [bool] reversed: in case parameter sortedBy is used
   static Future<List<File>> listFiles(String path,
       {List<String> extensions,
@@ -483,7 +483,7 @@ class FileManager {
         }
       }
     } catch (error) {
-      FileManagerError(error);
+      FileManagerError(error.toString());
     }
     if (files != null) {
       return sortBy(files, sortedBy, reversed: reversed);
@@ -520,7 +520,7 @@ class FileManager {
   /// Return a [List] of directories starting from the given path
   /// * [hidden] : [true] or [false] return hidden directory, like: "/storage/.thumbnails"
   /// * [true] will return hidden directories
-  /// * sortedBy: 'type', 'size', 'date', 'alpha'
+  /// * sortedBy: [FileManagerSorting]
   /// * [bool] reversed: in case parameter sortedBy is used
   static Future<List<Directory>> listDirectories(Directory path,
       {excludeHidden: false,
@@ -546,7 +546,7 @@ class FileManager {
         }
       }
     } catch (error) {
-      FileManagerError(permissionMessage + error);
+      FileManagerError(permissionMessage + error.toString());
     }
     if (directories != null) {
       return sortBy(directories, sortedBy);
