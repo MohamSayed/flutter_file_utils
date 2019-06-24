@@ -115,7 +115,11 @@ class _MyAppState extends State<MyApp> {
 * delete files
 * delete directory
 * temp file
-* Sorting file by: type, size, date, ..
+* Sorting
+  * Type
+  * Size
+  * date
+  * Alpha
 
 ### Contributors
 
@@ -128,4 +132,4 @@ class _MyAppState extends State<MyApp> {
 
 ### Contact me
 
-* me49544@gmail.com
+* me.dev6789@gmail.com

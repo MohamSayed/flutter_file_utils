@@ -1,13 +1,9 @@
-// dart files
 import 'dart:async';
+import 'dart:io';
 
-// framework
 import 'package:flutter/material.dart';
-
-// packages
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_file_manager/flutter_file_manager.dart';
-import 'package:simple_permissions/simple_permissions.dart';
 
 void main() => runApp(new MyApp());
 
@@ -18,36 +14,39 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
-    SimplePermissions.requestPermission(Permission.ReadExternalStorage);
     return MaterialApp(
       home: Scaffold(
-        appBar: AppBar(
-          title: Text("Flutter File Manager Example"),
-        ),
+        appBar: AppBar(title: Text("External Storage/DCIM/camera"),),
         body: FutureBuilder(
-            future: getPaths().toList(),
+            future: buildImages(),
             builder: (BuildContext context, AsyncSnapshot snapshot) {
               if (snapshot.connectionState == ConnectionState.done) {
-                return ListView.builder(
-                  itemCount: snapshot.data?.length ?? 0,
+                return GridView.builder(
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    crossAxisSpacing: 0.0,
+                    mainAxisSpacing: 0.0,
+                  ),
+                  primary: false,
+                  itemCount: snapshot.data.length, // equals the recents files length
+
                   itemBuilder: (context, index) {
-                    return ListTile(
-                      title: Text(snapshot.data[index].path.split('/').last),
-                    );
+                    return Image.file(snapshot.data[index]);
                   },
                 );
               } else if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(child: Text("Loading"));
+                return Text("Loading");
               }
             }),
       ),
     );
   }
 
-  Stream getPaths() async* {
+  Future buildImages() async {
     var root = await getExternalStorageDirectory();
-    yield* FileManager(
-      root: root,
-    ).walk(hidden: false);
+    List<File> files =
+        await FileManager.listFiles(root.path + "/DCIM/", extensions: ["png", "jpg"]);
+  
+    return files;
   }
 }

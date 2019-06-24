@@ -13,7 +13,7 @@
         {
             "name": "Flutter",
             "request": "launch",
-            "program": "example/main.dart",
+            "program": "example/lib/main.dart",
             "type": "dart"
         }
     ]
