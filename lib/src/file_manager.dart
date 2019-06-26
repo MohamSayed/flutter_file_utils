@@ -1,15 +1,15 @@
 // dart
 import 'dart:async';
-import 'dart:collection';
 import 'dart:io';
 
 // packages
-import 'package:flutter_file_manager/src/sorting.dart';
+import 'package:flutter_file_manager/src/filter.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 // local files
-import 'package:flutter_file_manager/src/time_tools.dart';
+import 'package:flutter_file_manager/src/sorting.dart';
+import 'package:flutter_file_manager/src/helper_functions.dart';
 
 String permissionMessage = '''
     \n
@@ -26,7 +26,9 @@ class FileManager {
   // The start point .
   Directory root;
 
-  FileManager({this.root}) : assert(root != null);
+  FileFilter filter;
+
+  FileManager({this.root, this.filter}) : assert(root != null);
 
   /// * This function returns a [List] of [int howMany] of type [File] of recently created files.
   /// * [excludeHidded] if [true] hidden files will not be returned
@@ -186,58 +188,23 @@ class FileManager {
   /// * [excludedPaths] example: '/storage/emulated/0/Android' no files will be
   /// included in the list from this path, and its sub directories
   Future<List<dynamic>> walkFuture({
-    List<String> extensions,
-    List<String> excludedPaths,
-    bool excludeHidden: false,
+    bool followLinks: false,
   }) async {
     List<dynamic> tree = [];
     // inserting root start pint
     tree.insert(0, Directory(root.path));
 
     try {
-      var _rawTree = root.listSync(followLinks: true, recursive: true);
-      if (extensions != null) {
-        for (var object in _rawTree) {
-          if (object is File) {
-            if (excludeHidden) {
-              if (!object.path.startsWith(".")) tree.add(object);
-            } else {
-              tree.add(object);
-            }
-            // directory
-          } else {
-            for (var dir in await listDirectories(
-              object,
-            )) {
-              if (excludeHidden) {
-                if (!dir.path.startsWith(".")) tree.add(dir);
-              } else {
-                tree.add(dir);
-              }
-            }
+      var files = await Directory(root.path)
+          .list(recursive: true, followLinks: followLinks)
+          .toList();
+      for (var file in files) {
+        if (filter != null) {
+          if (filter.validate(file.absolute.path, root.absolute.path)) {
+            tree.add(file);
           }
-        }
-
-        // extensions is null
-      } else {
-        for (var object in _rawTree) {
-          if (object is File) {
-            if (excludeHidden) {
-              if (!object.path.startsWith(".")) tree.add(object);
-            } else {
-              tree.add(object);
-            }
-          } else {
-            for (var dir in await listDirectories(
-              object,
-            )) {
-              if (excludeHidden) {
-                if (!dir.path.startsWith(".")) tree.add(dir);
-              } else {
-                tree.add(dir);
-              }
-            }
-          }
+        } else {
+          tree.add(file);
         }
       }
     } catch (error) {
@@ -248,30 +215,27 @@ class FileManager {
   }
 
   /// Return tree [List] of files starting from the root of type [File]
+  /// * [hidden]: [true] = get hidden, default, [false] no hidden
   /// * [excludedPaths] example: '/storage/emulated/0/Android' no files will be
   /// included in the list from this path, and its sub directories
-  Stream walk(
-      {List<String> extensions,
-      List<String> excludedPaths,
-      bool hidden: true,
-      followLinks: false}) async* {
-    try {
-      yield* Directory(root.path)
-          .list(recursive: true, followLinks: followLinks)
-          .transform(StreamTransformer.fromHandlers(
-              handleData: (FileSystemEntity file, EventSink eventSink) {
-        if (hidden) {
-          eventSink.add(file);
-        } else {
-          if (!p
-              .relative(file.absolute.path, from: root.absolute.path)
-              .startsWith(".")) {
-            eventSink.add(file);
+  Stream walk({followLinks: false}) async* {
+    if (filter != null) {
+      try {
+        yield* Directory(root.path)
+            .list(recursive: true, followLinks: followLinks)
+            .transform(StreamTransformer.fromHandlers(
+                handleData: (FileSystemEntity fileOrDir, EventSink eventSink) {
+          if (filter.validate(fileOrDir.absolute.path, root.absolute.path)) {
+            eventSink.add(fileOrDir);
           }
-        }
-      }));
-    } catch (error) {
-      throw FileManagerError(permissionMessage + error.toString());
+        }));
+      } catch (error) {
+        throw FileManagerError(permissionMessage + error.toString());
+      }
+    } else {
+      print("Flutter File Manager: walk: No filter");
+      yield* Directory(root.path)
+          .list(recursive: true, followLinks: followLinks);
     }
   }
 
@@ -351,115 +315,6 @@ class FileManager {
     } catch (error) {
       throw FileManagerError(error.toString());
     }
-  }
-
-  // returns [File] or [Directory]
-  /// * argument objects = [File] or [Directory]
-  /// * argument by [String]: 'date', 'alpha', 'size'
-  static List<dynamic> sortBy(List<dynamic> objects, FileManagerSorting by,
-      {bool reversed: false}) {
-    switch (by) {
-      case FileManagerSorting.Alpha:
-        objects
-            .sort((a, b) => getBaseName(a.path).compareTo(getBaseName(b.path)));
-        break;
-
-      case FileManagerSorting.Date:
-        objects.sort((a, b) {
-          return a
-              .statSync()
-              .modified
-              .millisecondsSinceEpoch
-              .compareTo(b.statSync().modified.millisecondsSinceEpoch);
-        });
-        break;
-
-      case FileManagerSorting.Size:
-        objects.sort((a, b) {
-          return a.statSync().size.compareTo(b.statSync().size);
-        });
-        break;
-
-      case FileManagerSorting.Type:
-        objects.sort((a, b) {
-          return p.extension(a.path).compareTo(p.extension(b.path));
-        });
-
-        break;
-      default:
-        objects
-            .sort((a, b) => getBaseName(a.path).compareTo(getBaseName(b.path)));
-    }
-    if (reversed == true) {
-      return objects.reversed.toList();
-    }
-    return objects;
-  }
-
-  /// Return the name of the file or the folder
-  /// i.e: /root/home/myfile.zip = myfile.zip
-  /// [extension]: with extension [true] or not [false], [true]
-  /// by default
-  static String getBaseName(String path, {bool extension: true}) {
-    if (extension) {
-      return p.split(path).last;
-    } else {
-      return p.split(path).last.split(new RegExp(r'\.\w+'))[0];
-    }
-  }
-
-  /// Returns a [HashMap] containing detials of the file or the directory
-  /// in organised style. you can use details from [Directory] or
-  /// [File] instead this function.
-  /// ### arguments
-  /// * [path] should be of [File] or [Directory]
-  ///
-  /// ### keys
-  /// * type
-  /// * lastChanged
-  /// * lastModified
-  /// * size
-  /// * permissions
-  /// * lastAccessed
-  /// * extension
-  /// * path
-  static Future<HashMap> details(dynamic path) async {
-    HashMap _details = HashMap();
-    if (path == null || (!path.existsSync() && !File(path).existsSync())) {
-      print("file or dir does not exists");
-      return null;
-      // directory
-    } else if (path.existsSync()) {
-      // directory or file
-      _details["type"] = path.statSync().type.toString();
-      _details["lastChanged"] =
-          TimeTools.timeNormalize(path.statSync().changed);
-      _details["lastModified"] = TimeTools.timeNormalize(
-          Directory.fromUri(Uri.parse(path)).statSync().modified);
-      _details["size"] = path.statSync().size;
-      _details["type"] = path.statSync().type.toString();
-      _details["lastAccessed"] =
-          TimeTools.timeNormalize(path.statSync().accessed);
-      _details["permissions"] = path.statSync().modeString();
-      _details["path"] = path;
-
-      return _details;
-      // file
-    } else if (File(path).existsSync()) {
-      var fileStat = File(path).statSync();
-      // directory or file
-      _details["lastModified"] = TimeTools.timeNormalize(fileStat.modified);
-      _details["lastAccessed"] = TimeTools.timeNormalize(fileStat.accessed);
-      _details["lastChanged"] = TimeTools.timeNormalize(fileStat.changed);
-      _details["type"] = fileStat.type.toString();
-      _details["size"] = fileStat.size;
-      _details["permissions"] = fileStat.modeString();
-      _details["extension"] = p.extension(path.path).replaceFirst('.', '');
-      _details["path"] = path;
-
-      return _details;
-    }
-    return null;
   }
 
   /// This function creates temporary file on the device storage

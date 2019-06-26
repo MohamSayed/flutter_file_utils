@@ -25,7 +25,7 @@ class _MyAppState extends State<MyApp> {
           title: Text("Flutter File Manager Example"),
         ),
         body: FutureBuilder(
-            future: getPaths().toList(),
+            future: getPaths(),
             builder: (BuildContext context, AsyncSnapshot snapshot) {
               if (snapshot.connectionState == ConnectionState.done) {
                 return ListView.builder(
@@ -44,10 +44,11 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-  Stream getPaths() async* {
+  Future getPaths() async {
     var root = await getExternalStorageDirectory();
-    yield* FileManager(
-      root: root,
-    ).walk(hidden: false);
+    return FileManager(
+            root: root,
+            filter: SimpleFileFilter(allowedExtensions: ["png", 'apk'], hidden: false))
+        .walkFuture();
   }
 }
