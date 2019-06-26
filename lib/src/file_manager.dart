@@ -20,10 +20,12 @@ String permissionMessage = '''
 
     and grant storage permissions to your applicaion from app settings
     \n
-    ''';
+''';
 
 class FileManager {
+  // The start point .
   Directory root;
+
   FileManager({this.root}) : assert(root != null);
 
   /// * This function returns a [List] of [int howMany] of type [File] of recently created files.
@@ -168,26 +170,28 @@ class FileManager {
 
   /// Delete file not a directory
   /// e.g:
-  /// deleteFile(/storage/emulated/0/myFile.txt")
-  static Future<void> deleteFile(String path) async {
-    //print("~ deleting:" + path);
-    var file = File(path);
+  static Future<void> deleteAll(List<FileSystemEntity> files) async {
     try {
-      file.delete();
-    } catch (error) {
-      throw FileManagerError(error.toString());
+      for (var file in files) {
+        file.delete();
+      }
+    } on FileSystemException catch (e) {
+      throw FileManagerError(e.toString());
+    } catch (e) {
+      rethrow;
     }
   }
 
-  /// return tree [List] of files starting from the root of type [File]
+  /// Return tree [List] of files starting from the root of type [File]
   /// * [excludedPaths] example: '/storage/emulated/0/Android' no files will be
   /// included in the list from this path, and its sub directories
-  Future<List<dynamic>> walk({
+  Future<List<dynamic>> walkFuture({
     List<String> extensions,
     List<String> excludedPaths,
     bool excludeHidden: false,
   }) async {
     List<dynamic> tree = [];
+    // inserting root start pint
     tree.insert(0, Directory(root.path));
 
     try {
@@ -241,6 +245,34 @@ class FileManager {
     }
 
     return tree;
+  }
+
+  /// Return tree [List] of files starting from the root of type [File]
+  /// * [excludedPaths] example: '/storage/emulated/0/Android' no files will be
+  /// included in the list from this path, and its sub directories
+  Stream walk(
+      {List<String> extensions,
+      List<String> excludedPaths,
+      bool hidden: true,
+      followLinks: false}) async* {
+    try {
+      yield* Directory(root.path)
+          .list(recursive: true, followLinks: followLinks)
+          .transform(StreamTransformer.fromHandlers(
+              handleData: (FileSystemEntity file, EventSink eventSink) {
+        if (hidden) {
+          eventSink.add(file);
+        } else {
+          if (!p
+              .relative(file.absolute.path, from: root.absolute.path)
+              .startsWith(".")) {
+            eventSink.add(file);
+          }
+        }
+      }));
+    } catch (error) {
+      throw FileManagerError(permissionMessage + error.toString());
+    }
   }
 
   /// Returns a list of found items of [Directory] or [File] type or empty list.
@@ -557,4 +589,9 @@ class FileManager {
 class FileManagerError extends Error {
   final String message;
   FileManagerError(this.message);
+
+  @override
+  String toString() {
+    return message;
+  }
 }
