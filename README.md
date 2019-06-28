@@ -70,7 +70,7 @@ class _MyAppState extends State<MyApp> {
           title: Text("Flutter File Manager Example"),
         ),
         body: FutureBuilder(
-            future: buildImages(),
+            future: _files(),
             builder: (BuildContext context, AsyncSnapshot snapshot) {
               if (snapshot.connectionState == ConnectionState.done) {
                 return ListView.builder(
@@ -89,9 +89,9 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-  Future buildImages() async {
+  Future _files() async {
     var root = await getExternalStorageDirectory();
-    var files = await FileManager(root: root).walk();
+    var files = await FileManager(root: root).walk().toList();
     return files;
   }
 }
@@ -118,6 +118,10 @@ class _MyAppState extends State<MyApp> {
   * Size
   * date
   * Alpha
+* filtering
+  * extensions
+  * files only
+  * directories only
 
 ### Contributors
 
