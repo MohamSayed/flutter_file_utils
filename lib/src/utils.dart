@@ -4,12 +4,12 @@ import 'dart:async';
 import 'dart:collection';
 
 // packages
-import 'package:flutter_file_manager/flutter_file_manager.dart';
 import 'package:path/path.dart' as p;
-import 'package:flutter_file_manager/src/time_tools.dart';
 
 // local
+import 'package:flutter_file_manager/flutter_file_manager.dart';
 import 'package:flutter_file_manager/src/sorting.dart';
+import 'package:flutter_file_manager/src/time_tools.dart';
 
 // returns [File] or [Directory]
 /// * argument objects = [File] or [Directory]
