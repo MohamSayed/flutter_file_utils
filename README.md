@@ -1,7 +1,5 @@
 # flutter_file_manager
 
-[![pub package](https://img.shields.io/pub/v/flutter_file_manager.svg)](https://pub.dartlang.org/packages/flutter_file_manager)
-
 A set of utilities, that help to manage the files & directories in Android system.
 
 You are in your way to create File Manager app or a Gallery App.
@@ -15,12 +13,9 @@ For help on editing package code, view the [documentation](https://flutter.io/de
 ## Screenshots
 
 <p>
-  <img src="https://github.com/Eagle6789/flutter_file_manager/raw/master/screenshots/ss3.jpg" height="300em" /> <img src="https://github.com/Eagle6789/flutter_file_manager/raw/master/screenshots/permission.jpg" height="300em"/>
-
-  <img src="https://github.com/Eagle6789/flutter_file_manager/blob/master/screenshots/filtering_example.png?raw=true" height="300em" /> 
-
+  <img src="https://github.com/Eagle6789/flutter_file_manager/raw/master/screenshots/permission.jpg" height="300em"/>
+  <img src="https://github.com/Eagle6789/flutter_file_manager/blob/master/screenshots/filtering_example.png?raw=true" height="300em" />
   <img src="https://github.com/Eagle6789/flutter_file_manager/raw/master/screenshots/ss5.jpg" height="300em" /> <img src="https://github.com/Eagle6789/flutter_file_manager/raw/master/screenshots/details.jpg" height="300em" />
-
 </p>
 
 ## Usage
