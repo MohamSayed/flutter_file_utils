@@ -68,7 +68,7 @@ class MyApp extends StatelessWidget {
     var root = await getExternalStorageDirectory();
     var fm = FileManager(root: root);
 
-    List founds = await fm.recentCreatedFiles(20,
+    List founds = await fm.recentFilesAndDirs(20,
         sortedBy: FileManagerSorting.Size, reversed: false);
 
     return founds;
