@@ -2,6 +2,8 @@
 
 * Restructuring
 * Improvements
+* Filters
+* Streams
 * ...
 
 # [0.1.1]
