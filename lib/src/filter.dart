@@ -4,8 +4,9 @@ import 'dart:io';
 import 'package:path/path.dart' as pathlib;
 
 // local
-import 'package:flutter_file_manager/src/helper_functions.dart';
+import 'package:flutter_file_manager/src/utils.dart';
 
+// Base file filter for creating other filters
 abstract class FileFilter {
   /// Checking if file is validate or not
   /// if it was valid then return [true] else [false]
@@ -21,49 +22,87 @@ class SimpleFileFilter extends FileFilter {
   /// If [true] (default) then get hidden,
   /// else [false] do not get hidden
   bool hidden;
-
-  SimpleFileFilter({
-    this.allowedExtensions,
-    this.hidden: true,
-  }) : assert(validExtensions(allowedExtensions) == true);
+  // Only return [File]s
+  bool fileOnly;
+// Only return [Directory]s
+  bool directoryOnly;
+  SimpleFileFilter(
+      {this.allowedExtensions,
+      this.hidden: true,
+      this.fileOnly: false,
+      this.directoryOnly: false})
+      : assert(validExtensions(allowedExtensions) == true),
+        assert(fileOnly && directoryOnly != true);
 
   bool checkExtension(String path) {
-    if (allowedExtensions.contains(pathlib.extension(path).replaceFirst('.', '')))
-      return true;
+    if (allowedExtensions
+        .contains(pathlib.extension(path).replaceFirst('.', ''))) return true;
     return false;
   }
 
   @override
   bool validate(String path, String root) {
-    // is directory or link
-    if (path is Directory) {
-      if (!hidden) {
-        if (isHidden(path, root)) {
-          print("filtering hidden dir: $path");
-
-          return false;
-        }
-        return true;
-      }
-      return true;
-      // is file
-    } else if (path is File) {
-      if (checkExtension(path)) {
-        print("filtering extension: $path");
+    if (directoryOnly) {
+      // is directory or link
+      if (FileSystemEntity.isDirectorySync(path)) {
         if (!hidden) {
           if (isHidden(path, root)) {
-            print("filtering hidden file: $path");
             return false;
           }
+          return true;
         }
+        return true;
+        // is file
+      } else
+        return false;
+    } else if (fileOnly) {
+      // is directory or link
+      if (FileSystemEntity.isDirectorySync(path)) {
+        return false;
+        // is file
+      } else if (FileSystemEntity.isFileSync(path)) {
+        if (checkExtension(path)) {
+          if (!hidden) {
+            if (isHidden(path, root)) {
+              return false;
+            }
+          }
 
+          return true;
+        }
+        return false;
+      } else if (FileSystemEntity.isLinkSync(path)) {
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      // is directory or link
+      if (path is Directory) {
+        if (!hidden) {
+          if (isHidden(path, root)) {
+            return false;
+          }
+          return true;
+        }
+        return true;
+        // is file
+      } else if (path is File) {
+        if (checkExtension(path)) {
+          if (!hidden) {
+            if (isHidden(path, root)) {
+              return false;
+            }
+          }
+
+          return true;
+        }
+        return false;
+      } else if (path is Link) {
+        return true;
+      } else {
         return true;
       }
-      return false;
-    } else if (path is Link) {
-      return true;
-    } else {
-      return true;
     }
   }
 }

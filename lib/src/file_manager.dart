@@ -9,7 +9,7 @@ import 'package:path_provider/path_provider.dart';
 
 // local files
 import 'package:flutter_file_manager/src/sorting.dart';
-import 'package:flutter_file_manager/src/helper_functions.dart';
+import 'package:flutter_file_manager/src/utils.dart';
 
 String permissionMessage = '''
     \n
@@ -34,7 +34,7 @@ class FileManager {
   /// * [excludeHidded] if [true] hidden files will not be returned
   /// * sortedBy: [FileManagerSorting]
   /// * [bool] reversed: in case parameter sortedBy is used
-  Future<List<File>> recentCreatedFiles(int count,
+  Future<List<File>> recentFilesAndDirs(int count,
       {List<String> extensions,
       List<String> excludedPaths,
       excludeHidden: false,
@@ -184,41 +184,10 @@ class FileManager {
     }
   }
 
-  /// Return tree [List] of files starting from the root of type [File]
-  /// * [excludedPaths] example: '/storage/emulated/0/Android' no files will be
-  /// included in the list from this path, and its sub directories
-  Future<List<dynamic>> walkFuture({
-    bool followLinks: false,
-  }) async {
-    List<dynamic> tree = [];
-    // inserting root start pint
-    tree.insert(0, Directory(root.path));
-
-    try {
-      var files = await Directory(root.path)
-          .list(recursive: true, followLinks: followLinks)
-          .toList();
-      for (var file in files) {
-        if (filter != null) {
-          if (filter.validate(file.absolute.path, root.absolute.path)) {
-            tree.add(file);
-          }
-        } else {
-          tree.add(file);
-        }
-      }
-    } catch (error) {
-      throw FileManagerError(permissionMessage + error.toString());
-    }
-
-    return tree;
-  }
-
-  /// Return tree [List] of files starting from the root of type [File]
-  /// * [hidden]: [true] = get hidden, default, [false] no hidden
-  /// * [excludedPaths] example: '/storage/emulated/0/Android' no files will be
-  /// included in the list from this path, and its sub directories
-  Stream walk({followLinks: false}) async* {
+  /// Return tree [List] of files starting from the root of type [File].
+  ///
+  /// This function uses filter
+  Stream<FileSystemEntity> walk({followLinks: false}) async* {
     if (filter != null) {
       try {
         yield* Directory(root.path)
@@ -248,7 +217,7 @@ class FileManager {
   /// * [bool] reversed: in case parameter sortedBy is used
   /// * Example:
   /// * List<String> imagesPaths = await FileManager.search("myFile.png");
-  Future<List<dynamic>> search(
+  Future<List<dynamic>> searchFuture(
     var keyword, {
     List<String> excludedPaths,
     filesOnly = false,
@@ -298,6 +267,51 @@ class FileManager {
       return sortBy(founds, sortedBy);
     }
     return founds;
+  }
+
+  /// Returns a list of found items of [Directory] or [File] type or empty list.
+  /// You may supply `Regular Expression` e.g: "*\.png", instead of string.
+  /// * [filesOnly] if set to [true] return only files
+  /// * [dirsOnly] if set to [true] return only directories
+  /// * You can set both to [true]
+  /// * sortedBy: [FileManagerSorting]
+  /// * [bool] reverse: in case parameter sortedBy is used
+  /// * Example:
+  /// * `List<String> imagesPaths = await FileManager.search("myFile.png").toList();`
+  Stream<FileSystemEntity> search(
+    var keyword, {
+    FileFilter searchFilter,
+    FileManagerSorting sortedBy,
+  }) async* {
+    try {
+      if (keyword.length == 0 || keyword == null) {
+        throw FileManagerError("search keyword == null");
+      }
+      if (searchFilter != null) {
+        print("Using default filter");
+        yield* root.list(recursive: true, followLinks: true).where((test) {
+          if (searchFilter.validate(test.absolute.path, root.absolute.path)) {
+            return getBaseName(test.path, extension: true).contains(keyword);
+          }
+          return false;
+        });
+      } else if (filter != null) {
+        print("Using default filter");
+        yield* root.list(recursive: true, followLinks: true).where((test) {
+          if (filter.validate(test.absolute.path, root.absolute.path)) {
+            return getBaseName(test.path, extension: true).contains(keyword);
+          }
+          return false;
+        });
+      } else {
+        yield* root.list(recursive: true, followLinks: true).where((test) =>
+            getBaseName(test.path, extension: true).contains(keyword));
+      }
+    } on FileSystemException catch (e) {
+      throw FileManagerError(permissionMessage + ' ' + e.toString());
+    } catch (e) {
+      throw FileManagerError(e.toString());
+    }
   }
 
   /// Delete a directory recursively or not
