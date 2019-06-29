@@ -1,8 +1,6 @@
 # flutter_file_manager
 
-A set of utilities, that help to manage the files & directories in Android system.
-
-You are in your way to create File Manager app or a Gallery App.
+Helper tools for managing files on Android.
 
 ## Getting Started
 
@@ -89,7 +87,7 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-  Future _files() async {
+  _files() async {
     var root = await getExternalStorageDirectory();
     var files = await FileManager(root: root).walk().toList();
     return files;
@@ -127,7 +125,7 @@ class _MyAppState extends State<MyApp> {
 
 * [Mohamed Naga](https://github.com/eagle6789)
 
-## Feel free to donate
+## Donate
 
 * [PayPal](https://www.paypal.me/eagle6789)
 * me49544@gmail.com
