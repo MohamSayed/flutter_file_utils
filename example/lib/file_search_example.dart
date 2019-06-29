@@ -64,6 +64,6 @@ class _FilesSearchStateApp extends State<FilesSearchApp> {
   Future getfiles(String searchString) async {
     var root = await getExternalStorageDirectory();
     var fm = FileManager(root: root);
-    return await fm.search(searchString);
+    return await fm.search(searchString).toList();
   }
 }

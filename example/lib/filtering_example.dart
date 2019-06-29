@@ -61,22 +61,22 @@ class _HomePageState extends State<HomePage> {
         .walk();
   }
 
-  Future _search() async {
-    var root = await getExternalStorageDirectory();
-    var fm = FileManager(
-      root: root,
-    );
+  // Future _search() async {
+  //   var root = await getExternalStorageDirectory();
+  //   var fm = FileManager(
+  //     root: root,
+  //   );
 
-    List founds = await fm
-        .search(
-          // search keyword
-          "android",
-          searchFilter:
-              SimpleFileFilter(allowedExtensions: ['png'], fileOnly: true),
-          sortedBy: FileManagerSorting.Size,
-        )
-        .toList();
+  //   List founds = await fm
+  //       .search(
+  //         // search keyword
+  //         "android",
+  //         searchFilter:
+  //             SimpleFileFilter(allowedExtensions: ['png'], fileOnly: true),
+  //         sortedBy: FileManagerSorting.Size,
+  //       )
+  //       .toList();
 
-    return founds;
-  }
+  //   return founds;
+  // }
 }
