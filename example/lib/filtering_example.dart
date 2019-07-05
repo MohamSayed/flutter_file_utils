@@ -6,8 +6,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 // packages
-import 'package:path_provider/path_provider.dart';
 import 'package:flutter_file_manager/flutter_file_manager.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:simple_permissions/simple_permissions.dart';
 
 void main() => runApp(new HomePage());
@@ -57,7 +57,7 @@ class _HomePageState extends State<HomePage> {
     yield* FileManager(
             root: root,
             filter: SimpleFileFilter(
-                allowedExtensions: ["png", 'apk'], hidden: false))
+                allowedExtensions: ["png", 'apk'], includeHidden: false))
         .walk();
   }
 
