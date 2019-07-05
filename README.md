@@ -116,7 +116,7 @@ class _MyAppState extends State<MyApp> {
   * Size
   * date
   * Alpha
-* filtering
+* [Filtering](https://github.com/Eagle6789/flutter_file_manager/blob/master/example/lib/filtering_example.dart)
   * extensions
   * files only
   * directories only
