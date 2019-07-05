@@ -102,24 +102,27 @@ class _MyAppState extends State<MyApp> {
 
 ### Features
 
-* file details
-* search files or directories: supports regular expressions
-* recent created files: you can exclude a list of directories from the tree 
-* directories only tree: you can exclude a list of directories from the tree
-* files only tree: you can exclude a list of directories from the tree
-* files list from specific point
-* delete files
-* delete directory
-* temp file
+* File Details
+* Search files or directories: supports regular expressions
+* Recent created files: you can exclude a list of directories from the tree 
+* Directories only tree: you can exclude a list of directories from the tree
+* Files only tree: you can exclude a list of directories from the tree
+* Files list from specific point
+* Delete files
+* Delete directory
+* Temp file
 * Sorting
   * Type
   * Size
-  * date
+  * Date
   * Alpha
 * [Filtering](https://github.com/Eagle6789/flutter_file_manager/blob/master/example/lib/filtering_example.dart)
-  * extensions
-  * files only
-  * directories only
+  * Extensions
+  * Files only
+  * Directories only
+* System Tools
+  * Copy
+  * Rename
 
 ### Contributors
 
