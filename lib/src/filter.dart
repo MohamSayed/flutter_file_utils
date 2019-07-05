@@ -8,9 +8,9 @@ import 'package:flutter_file_manager/src/utils.dart';
 
 // Base file filter for creating other filters
 abstract class FileFilter {
-  /// Checking if file is validate or not
+  /// Checking if file is valid or not
   /// if it was valid then return [true] else [false]
-  bool validate(String path, String root);
+  bool isValid(String path, String root);
 }
 
 class SimpleFileFilter extends FileFilter {
@@ -21,14 +21,16 @@ class SimpleFileFilter extends FileFilter {
 
   /// If [true] (default) then get hidden,
   /// else [false] do not get hidden
-  bool hidden;
-  // Only return [File]s
+  bool includeHidden;
+
+  /// Only return [File]s
   bool fileOnly;
-// Only return [Directory]s
+
+  /// Only return [Directory]s
   bool directoryOnly;
   SimpleFileFilter(
       {this.allowedExtensions,
-      this.hidden: true,
+      this.includeHidden: true,
       this.fileOnly: false,
       this.directoryOnly: false})
       : assert(validExtensions(allowedExtensions) == true),
@@ -41,11 +43,11 @@ class SimpleFileFilter extends FileFilter {
   }
 
   @override
-  bool validate(String path, String root) {
+  bool isValid(String path, String root) {
     if (directoryOnly) {
       // is directory or link
       if (FileSystemEntity.isDirectorySync(path)) {
-        if (!hidden) {
+        if (!includeHidden) {
           if (isHidden(path, root)) {
             return false;
           }
@@ -62,7 +64,7 @@ class SimpleFileFilter extends FileFilter {
         // is file
       } else if (FileSystemEntity.isFileSync(path)) {
         if (checkExtension(path)) {
-          if (!hidden) {
+          if (!includeHidden) {
             if (isHidden(path, root)) {
               return false;
             }
@@ -79,7 +81,7 @@ class SimpleFileFilter extends FileFilter {
     } else {
       // is directory or link
       if (path is Directory) {
-        if (!hidden) {
+        if (!includeHidden) {
           if (isHidden(path, root)) {
             return false;
           }
@@ -89,7 +91,7 @@ class SimpleFileFilter extends FileFilter {
         // is file
       } else if (path is File) {
         if (checkExtension(path)) {
-          if (!hidden) {
+          if (!includeHidden) {
             if (isHidden(path, root)) {
               return false;
             }
