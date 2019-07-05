@@ -194,7 +194,7 @@ class FileManager {
             .list(recursive: true, followLinks: followLinks)
             .transform(StreamTransformer.fromHandlers(
                 handleData: (FileSystemEntity fileOrDir, EventSink eventSink) {
-          if (filter.validate(fileOrDir.absolute.path, root.absolute.path)) {
+          if (filter.isValid(fileOrDir.absolute.path, root.absolute.path)) {
             eventSink.add(fileOrDir);
           }
         }));
@@ -290,7 +290,7 @@ class FileManager {
       if (searchFilter != null) {
         print("Using default filter");
         yield* root.list(recursive: true, followLinks: true).where((test) {
-          if (searchFilter.validate(test.absolute.path, root.absolute.path)) {
+          if (searchFilter.isValid(test.absolute.path, root.absolute.path)) {
             return getBaseName(test.path, extension: true).contains(keyword);
           }
           return false;
@@ -298,7 +298,7 @@ class FileManager {
       } else if (filter != null) {
         print("Using default filter");
         yield* root.list(recursive: true, followLinks: true).where((test) {
-          if (filter.validate(test.absolute.path, root.absolute.path)) {
+          if (filter.isValid(test.absolute.path, root.absolute.path)) {
             return getBaseName(test.path, extension: true).contains(keyword);
           }
           return false;
