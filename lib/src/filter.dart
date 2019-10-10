@@ -33,13 +33,13 @@ class SimpleFileFilter extends FileFilter {
       this.includeHidden: true,
       this.fileOnly: false,
       this.directoryOnly: false})
-      : assert(validExtensions(allowedExtensions) == true),
-        assert(fileOnly && directoryOnly != true);
+      : assert(validExtensions(allowedExtensions)),
+        assert(!(fileOnly && directoryOnly));
 
   bool checkExtension(String path) {
-    if (allowedExtensions
-        .contains(pathlib.extension(path).replaceFirst('.', ''))) return true;
-    return false;
+    if (allowedExtensions == null)
+      return true;
+    return allowedExtensions.contains(pathlib.extension(path).replaceFirst('.', ''));
   }
 
   @override
