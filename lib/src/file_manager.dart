@@ -9,7 +9,7 @@ import 'package:path_provider/path_provider.dart';
 
 // local files
 import 'package:flutter_file_manager/src/sorting.dart';
-import 'package:flutter_file_manager/src/utils.dart';
+import 'package:flutter_file_manager/file_system_utils.dart';
 
 String permissionMessage = '''
     \n

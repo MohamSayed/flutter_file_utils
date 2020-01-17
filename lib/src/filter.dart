@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:path/path.dart' as pathlib;
 
 // local
-import 'package:flutter_file_manager/src/utils.dart';
+import 'package:flutter_file_manager/file_system_utils.dart';
 
 // Base file filter for creating other filters
 abstract class FileFilter {
