@@ -1,10 +1,12 @@
 // dart
 import 'dart:io';
+
 // packages
 import 'package:path/path.dart' as pathlib;
 
 // local
-import 'package:flutter_file_manager/file_system_utils.dart';
+import 'file_system_utils.dart';
+import 'exceptions.dart';
 
 // Base file filter for creating other filters
 abstract class FileFilter {
@@ -37,9 +39,9 @@ class SimpleFileFilter extends FileFilter {
         assert(!(fileOnly && directoryOnly));
 
   bool checkExtension(String path) {
-    if (allowedExtensions == null)
-      return true;
-    return allowedExtensions.contains(pathlib.extension(path).replaceFirst('.', ''));
+    if (allowedExtensions == null) return true;
+    return allowedExtensions
+        .contains(pathlib.extension(path).replaceFirst('.', ''));
   }
 
   @override
@@ -107,14 +109,16 @@ class SimpleFileFilter extends FileFilter {
       }
     }
   }
-}
 
-class NotValidExtensionError extends Error {
-  final String message;
-  NotValidExtensionError(this.message);
-
-  @override
-  String toString() {
-    return "Not valid extension: $message";
+  static bool validExtensions(List<String> extensions) {
+    if (extensions != null) {
+      for (var extension in extensions) {
+        if (extension.startsWith('.')) {
+          throw NotValidExtensionError(extension);
+        }
+      }
+      return true;
+    }
+    return true;
   }
 }

@@ -4,8 +4,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 // packages
-import 'package:flutter_file_manager/flutter_file_manager.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:flutter_file_utils/flutter_file_utils.dart';
+import 'package:flutter_file_utils/utils.dart';
+
 import 'package:path/path.dart' as p;
 
 void main() => runApp(new MyApp());
@@ -20,14 +21,15 @@ class MyApp extends StatelessWidget {
             title: Text("Flutter File Manager Demo"),
           ),
           body: FutureBuilder(
-            future: _search(), // a previously-obtained Future<String> or null
+            future: _search(),
             builder: (BuildContext context, AsyncSnapshot snapshot) {
               switch (snapshot.connectionState) {
                 case ConnectionState.none:
-                  return Text('Press button to start.');
+                  return Center(child: Text('Press button to start.'));
                 case ConnectionState.active:
+                  return Center(child: Text('Active'));
                 case ConnectionState.waiting:
-                  return Text('Awaiting result...');
+                  return Center(child: Text('Awaiting result...'));
                 case ConnectionState.done:
                   if (snapshot.hasError)
                     return Text('Error: ${snapshot.error}');
@@ -66,21 +68,18 @@ class MyApp extends StatelessWidget {
   }
 
   Future _search() async {
-    var root = await getExternalStorageDirectory();
+    var root = await getStorageList();
     var fm = FileManager(
-      root: root,
+      root: root[1],
     );
 
     List founds = await fm
         .search(
           // search keyword
           "android",
-          searchFilter:
-              SimpleFileFilter(allowedExtensions: ['png'], fileOnly: true),
-          sortedBy: FileManagerSorting.Size,
+          sortedBy: FlutterFileUtilsSorting.Size,
         )
         .toList();
-
     return founds;
   }
 }

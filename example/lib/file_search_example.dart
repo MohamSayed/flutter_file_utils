@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_file_manager/flutter_file_manager.dart';
+import 'package:flutter_file_utils/flutter_file_utils.dart';
 import 'package:path_provider/path_provider.dart';
 
 void main() => runApp(new FilesSearchApp());
@@ -56,6 +56,7 @@ class _FilesSearchStateApp extends State<FilesSearchApp> {
               } else if (snapshot.connectionState == ConnectionState.none) {
                 return Center(child: Text("Nothing was found"));
               }
+              return Container();
             }),
       ),
     );

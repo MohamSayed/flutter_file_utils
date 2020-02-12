@@ -1,4 +1,4 @@
-# flutter_file_manager
+# flutter_file_utils
 
 Helper tools for managing files on Android.
 
@@ -11,9 +11,9 @@ For help on editing package code, view the [documentation](https://flutter.io/de
 ## Screenshots
 
 <p>
-  <img src="https://github.com/Eagle6789/flutter_file_manager/raw/master/screenshots/permission.jpg" height="300em"/>
-  <img src="https://github.com/Eagle6789/flutter_file_manager/blob/master/screenshots/filtering_example.png?raw=true" height="300em" />
-  <img src="https://github.com/Eagle6789/flutter_file_manager/raw/master/screenshots/details.jpg" height="300em" />
+  <img src="https://github.com/nagakm/flutter_file_utils/raw/master/screenshots/permission.jpg" height="300em"/>
+  <img src="https://github.com/nagakm/flutter_file_utils/blob/master/screenshots/filtering_example.png?raw=true" height="300em" />
+  <img src="https://github.com/nagakm/flutter_file_utils/raw/master/screenshots/details.jpg" height="300em" />
 </p>
 
 ## Usage
@@ -27,7 +27,7 @@ dependencies:
     sdk: flutter
   path: 1.6.2
   path_provider: 0.5.0+1
-  flutter_file_manager: ^0.2.0
+  flutter_file_utils: ^0.2.0
 ```
 
 And, add read / write permissions in your
@@ -49,7 +49,7 @@ import 'package:flutter/material.dart';
 
 // packages
 import 'package:path_provider/path_provider.dart';
-import 'package:flutter_file_manager/flutter_file_manager.dart';
+import 'package:flutter_file_utils/flutter_file_utils.dart';
 import 'package:simple_permissions/simple_permissions.dart';
 
 void main() => runApp(new MyApp());
@@ -98,7 +98,7 @@ class _MyAppState extends State<MyApp> {
 
 ### Examples
 
-* [examples](https://github.com/Eagle6789/flutter_file_manager/tree/master/example/lib)
+* [examples](https://github.com/nagakm/flutter_file_utils/tree/master/example/lib)
 
 ### Features
 
@@ -116,7 +116,7 @@ class _MyAppState extends State<MyApp> {
   * Size
   * Date
   * Alpha
-* [Filtering](https://github.com/Eagle6789/flutter_file_manager/blob/master/example/lib/filtering_example.dart)
+* [Filtering](https://github.com/nagakm/flutter_file_utils/blob/master/example/lib/filtering_example.dart)
   * Extensions
   * Files only
   * Directories only
@@ -126,7 +126,7 @@ class _MyAppState extends State<MyApp> {
 
 ### Contributors
 
-* [Mohamed Naga](https://github.com/eagle6789)
+* [Mohamed Naga](https://github.com/nagakm)
 
 ## Donate
 

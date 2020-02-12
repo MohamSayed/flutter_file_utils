@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:flutter_file_manager/flutter_file_manager.dart';
+import 'package:flutter_file_utils/flutter_file_utils.dart';
 
 void main() => runApp(new MyApp());
 
@@ -35,6 +35,7 @@ class _MyAppState extends State<MyApp> {
               } else if (snapshot.connectionState == ConnectionState.waiting) {
                 return Text("Loading");
               }
+              return Container();
             }),
       ),
     );

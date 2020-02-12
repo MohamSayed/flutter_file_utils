@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 
 // packages
-import 'package:flutter_file_manager/flutter_file_manager.dart';
+import 'package:flutter_file_utils/flutter_file_utils.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
@@ -68,7 +68,7 @@ class MyApp extends StatelessWidget {
     var fm = FileManager(root: root);
 
     List founds = await fm.recentFilesAndDirs(20,
-        sortedBy: FileManagerSorting.Size, reversed: false);
+        sortedBy: FlutterFileUtilsSorting.Size, reversed: false);
 
     return founds;
   }

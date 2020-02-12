@@ -62,7 +62,7 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  flutter_file_manager:
+  flutter_file_utils:
     dependency: "direct overridden"
     description:
       path: ".."

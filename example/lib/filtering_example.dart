@@ -6,7 +6,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 // packages
-import 'package:flutter_file_manager/flutter_file_manager.dart';
+import 'package:flutter_file_utils/flutter_file_utils.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:simple_permissions/simple_permissions.dart';
 
@@ -47,6 +47,7 @@ class _HomePageState extends State<HomePage> {
               } else if (snapshot.connectionState == ConnectionState.waiting) {
                 return Center(child: Text("Loading"));
               }
+              return Container();
             }),
       ),
     );

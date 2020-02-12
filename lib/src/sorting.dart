@@ -1,1 +1,1 @@
-enum FileManagerSorting { Date, Size, Type, Alpha }
+enum FlutterFileUtilsSorting { Date, Size, Type, Alpha }

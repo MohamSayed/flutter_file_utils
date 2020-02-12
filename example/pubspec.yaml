@@ -1,7 +1,7 @@
 name: example
 description: A new Flutter project.
 version: 1.0.0
-homepage: https://github.com/Eagle6789/flutter_file_manager
+homepage: https://github.com/Eagle6789/flutter_file_utils
 author: Mohamed Naga <me.dev6789@gmail.com>
 
 environment:
@@ -19,5 +19,5 @@ dev_dependencies:
     sdk: flutter
 
 dependency_overrides:
-  flutter_file_manager:
+  flutter_file_utils:
     path: ../
