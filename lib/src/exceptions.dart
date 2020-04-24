@@ -14,6 +14,6 @@ class NotValidExtensionError extends Error {
 
   @override
   String toString() {
-    return "Not valid extension: $message";
+    return 'Not valid extension: $message';
   }
 }
