@@ -1,0 +1,11 @@
+include: package:pedantic/analysis_options.1.9.0.yaml
+linter:
+  rules:
+    - public_member_api_docs
+
+analyzer:
+  strong-mode:
+    implicit-casts: false
+    implicit-dynamic: false
+  errors:
+    public_member_api_docs: ignore
