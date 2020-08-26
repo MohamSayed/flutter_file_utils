@@ -2,9 +2,9 @@
   <library name="Flutter Plugins" type="FlutterPluginsLibraryType">
     <CLASSES>
       <root url="file://C:/Tools/flutter/.pub-cache/hosted/pub.dartlang.org/path_provider_macos-0.0.4+3" />
-      <root url="file://C:/Tools/flutter/.pub-cache/hosted/pub.dartlang.org/package_info-0.4.1" />
-      <root url="file://C:/Tools/flutter/.pub-cache/hosted/pub.dartlang.org/path_provider-1.6.11" />
       <root url="file://C:/Tools/flutter/.pub-cache/hosted/pub.dartlang.org/path_provider_linux-0.0.1+2" />
+      <root url="file://C:/Tools/flutter/.pub-cache/hosted/pub.dartlang.org/package_info-0.4.3" />
+      <root url="file://C:/Tools/flutter/.pub-cache/hosted/pub.dartlang.org/path_provider-1.6.14" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

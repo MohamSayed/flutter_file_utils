@@ -2,10 +2,17 @@
   <library name="Dart Packages" type="DartPackagesLibraryType">
     <properties>
       <option name="packageNameToDirsMap">
+        <entry key="characters">
+          <value>
+            <list>
+              <option value="C:/Tools/flutter/.pub-cache/hosted/pub.dartlang.org/characters-1.0.0/lib" />
+            </list>
+          </value>
+        </entry>
         <entry key="collection">
           <value>
             <list>
-              <option value="C:/Tools/flutter/.pub-cache/hosted/pub.dartlang.org/collection-1.14.12/lib" />
+              <option value="C:/Tools/flutter/.pub-cache/hosted/pub.dartlang.org/collection-1.14.13/lib" />
             </list>
           </value>
         </entry>
@@ -40,7 +47,7 @@
         <entry key="package_info">
           <value>
             <list>
-              <option value="C:/Tools/flutter/.pub-cache/hosted/pub.dartlang.org/package_info-0.4.1/lib" />
+              <option value="C:/Tools/flutter/.pub-cache/hosted/pub.dartlang.org/package_info-0.4.3/lib" />
             </list>
           </value>
         </entry>
@@ -54,7 +61,7 @@
         <entry key="path_provider">
           <value>
             <list>
-              <option value="C:/Tools/flutter/.pub-cache/hosted/pub.dartlang.org/path_provider-1.6.11/lib" />
+              <option value="C:/Tools/flutter/.pub-cache/hosted/pub.dartlang.org/path_provider-1.6.14/lib" />
             </list>
           </value>
         </entry>
@@ -75,7 +82,7 @@
         <entry key="path_provider_platform_interface">
           <value>
             <list>
-              <option value="C:/Tools/flutter/.pub-cache/hosted/pub.dartlang.org/path_provider_platform_interface-1.0.2/lib" />
+              <option value="C:/Tools/flutter/.pub-cache/hosted/pub.dartlang.org/path_provider_platform_interface-1.0.3/lib" />
             </list>
           </value>
         </entry>
@@ -117,7 +124,7 @@
         <entry key="typed_data">
           <value>
             <list>
-              <option value="C:/Tools/flutter/.pub-cache/hosted/pub.dartlang.org/typed_data-1.1.6/lib" />
+              <option value="C:/Tools/flutter/.pub-cache/hosted/pub.dartlang.org/typed_data-1.2.0/lib" />
             </list>
           </value>
         </entry>
@@ -138,21 +145,22 @@
       </option>
     </properties>
     <CLASSES>
-      <root url="file://C:/Tools/flutter/.pub-cache/hosted/pub.dartlang.org/collection-1.14.12/lib" />
+      <root url="file://C:/Tools/flutter/.pub-cache/hosted/pub.dartlang.org/characters-1.0.0/lib" />
+      <root url="file://C:/Tools/flutter/.pub-cache/hosted/pub.dartlang.org/collection-1.14.13/lib" />
       <root url="file://C:/Tools/flutter/.pub-cache/hosted/pub.dartlang.org/file-5.2.1/lib" />
       <root url="file://C:/Tools/flutter/.pub-cache/hosted/pub.dartlang.org/intl-0.16.1/lib" />
       <root url="file://C:/Tools/flutter/.pub-cache/hosted/pub.dartlang.org/meta-1.1.8/lib" />
-      <root url="file://C:/Tools/flutter/.pub-cache/hosted/pub.dartlang.org/package_info-0.4.1/lib" />
+      <root url="file://C:/Tools/flutter/.pub-cache/hosted/pub.dartlang.org/package_info-0.4.3/lib" />
       <root url="file://C:/Tools/flutter/.pub-cache/hosted/pub.dartlang.org/path-1.7.0/lib" />
-      <root url="file://C:/Tools/flutter/.pub-cache/hosted/pub.dartlang.org/path_provider-1.6.11/lib" />
+      <root url="file://C:/Tools/flutter/.pub-cache/hosted/pub.dartlang.org/path_provider-1.6.14/lib" />
       <root url="file://C:/Tools/flutter/.pub-cache/hosted/pub.dartlang.org/path_provider_linux-0.0.1+2/lib" />
       <root url="file://C:/Tools/flutter/.pub-cache/hosted/pub.dartlang.org/path_provider_macos-0.0.4+3/lib" />
-      <root url="file://C:/Tools/flutter/.pub-cache/hosted/pub.dartlang.org/path_provider_platform_interface-1.0.2/lib" />
+      <root url="file://C:/Tools/flutter/.pub-cache/hosted/pub.dartlang.org/path_provider_platform_interface-1.0.3/lib" />
       <root url="file://C:/Tools/flutter/.pub-cache/hosted/pub.dartlang.org/pedantic-1.9.0/lib" />
       <root url="file://C:/Tools/flutter/.pub-cache/hosted/pub.dartlang.org/platform-2.2.1/lib" />
       <root url="file://C:/Tools/flutter/.pub-cache/hosted/pub.dartlang.org/plugin_platform_interface-1.0.2/lib" />
       <root url="file://C:/Tools/flutter/.pub-cache/hosted/pub.dartlang.org/process-3.0.13/lib" />
-      <root url="file://C:/Tools/flutter/.pub-cache/hosted/pub.dartlang.org/typed_data-1.1.6/lib" />
+      <root url="file://C:/Tools/flutter/.pub-cache/hosted/pub.dartlang.org/typed_data-1.2.0/lib" />
       <root url="file://C:/Tools/flutter/.pub-cache/hosted/pub.dartlang.org/vector_math-2.0.8/lib" />
       <root url="file://C:/Tools/flutter/.pub-cache/hosted/pub.dartlang.org/xdg_directories-0.1.0/lib" />
       <root url="file://C:/Tools/flutter/bin/cache/pkg/sky_engine/lib" />
