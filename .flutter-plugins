@@ -1,5 +1,6 @@
 # This is a generated file; do not edit or check into version control.
 package_info=C:\\Tools\\flutter\\.pub-cache\\hosted\\pub.dartlang.org\\package_info-0.4.3\\
-path_provider=C:\\Tools\\flutter\\.pub-cache\\hosted\\pub.dartlang.org\\path_provider-1.6.14\\
+path_provider=C:\\Tools\\flutter\\.pub-cache\\hosted\\pub.dartlang.org\\path_provider-1.6.18\\
 path_provider_linux=C:\\Tools\\flutter\\.pub-cache\\hosted\\pub.dartlang.org\\path_provider_linux-0.0.1+2\\
-path_provider_macos=C:\\Tools\\flutter\\.pub-cache\\hosted\\pub.dartlang.org\\path_provider_macos-0.0.4+3\\
+path_provider_macos=C:\\Tools\\flutter\\.pub-cache\\hosted\\pub.dartlang.org\\path_provider_macos-0.0.4+4\\
+path_provider_windows=C:\\Tools\\flutter\\.pub-cache\\hosted\\pub.dartlang.org\\path_provider_windows-0.0.4+1\\
