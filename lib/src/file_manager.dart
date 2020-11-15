@@ -55,7 +55,8 @@ class FileManager {
     _sorted = _sorted.getRange(0, count).toList();
 
     if (sortedBy != null) {
-      return sortBy(filesPaths, sortedBy, reversed: reversed);
+      _sorted = sortBy(filesPaths, sortedBy, reversed: reversed);
+      _sorted = _sorted.getRange(0, count).toList();
     }
 
     return _sorted;
