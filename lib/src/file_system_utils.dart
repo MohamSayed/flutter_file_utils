@@ -1,24 +1,23 @@
 // dart
-import 'dart:io';
 import 'dart:async';
 import 'dart:collection';
+import 'dart:io';
 
-// packages
 import 'package:path/path.dart' as pathlib;
+import 'package:path_provider/path_provider.dart';
 
-// local
 import 'exceptions.dart';
+import 'file_manager.dart';
+import 'io_extensions.dart';
 import 'sorting.dart';
 import 'time_tools.dart';
-import 'io_extensions.dart';
-import 'package:path_provider/path_provider.dart';
-import 'file_manager.dart';
 
 // returns [File] or [Directory]
 /// * argument objects = [File] or [Directory]
 /// * argument by [String]: 'date', 'alpha', 'size'
-List<dynamic> sortBy(List<dynamic> objects, FlutterFileUtilsSorting by,
-    {bool reversed: false}) {
+List<FileSystemEntity> sortBy(
+    List<FileSystemEntity> objects, FlutterFileUtilsSorting by,
+    {bool reversed = false}) {
   switch (by) {
     case FlutterFileUtilsSorting.Alpha:
       objects
@@ -61,11 +60,11 @@ List<dynamic> sortBy(List<dynamic> objects, FlutterFileUtilsSorting by,
 /// i.e: /root/home/myfile.zip = myfile.zip
 /// [extension]: with extension [true] or not [false], [true]
 /// by default
-String getBaseName(String path, {bool extension: true}) {
+String getBaseName(String path, {bool extension = true}) {
   if (extension) {
     return pathlib.split(path).last;
   } else {
-    return pathlib.split(path).last.split(new RegExp(r'\.\w+'))[0];
+    return pathlib.split(path).last.split(RegExp(r'\.\w+'))[0];
   }
 }
 
@@ -84,38 +83,38 @@ String getBaseName(String path, {bool extension: true}) {
 /// * lastAccessed
 /// * extension
 /// * path
-Future<Map> details(dynamic path) async {
-  HashMap _details = HashMap();
-  if (path == null || (!path.existsSync() && !File(path).existsSync())) {
-    print("file or dir does not exists");
+Future<Map<String, dynamic>> details(FileSystemEntity path) async {
+  var _details = <String, dynamic>{};
+  if (path == null || !path.existsSync()) {
+    print('file or dir does not exists');
     return null;
     // directory
   } else if (path.existsSync()) {
     // directory or file
-    _details["type"] = path.statSync().type.toString();
-    _details["lastChanged"] = TimeTools.timeNormalize(path.statSync().changed);
-    _details["lastModified"] = TimeTools.timeNormalize(
-        Directory.fromUri(Uri.parse(path)).statSync().modified);
-    _details["size"] = path.statSync().size;
-    _details["type"] = path.statSync().type.toString();
-    _details["lastAccessed"] =
+    _details['type'] = path.statSync().type.toString();
+    _details['lastChanged'] = TimeTools.timeNormalize(path.statSync().changed);
+    _details['lastModified'] = TimeTools.timeNormalize(
+        Directory.fromUri(Uri.parse(path.path)).statSync().modified);
+    _details['size'] = path.statSync().size;
+    _details['type'] = path.statSync().type.toString();
+    _details['lastAccessed'] =
         TimeTools.timeNormalize(path.statSync().accessed);
-    _details["permissions"] = path.statSync().modeString();
-    _details["path"] = path;
+    _details['permissions'] = path.statSync().modeString();
+    _details['path'] = path;
 
     return _details;
     // file
-  } else if (File(path).existsSync()) {
-    var fileStat = File(path).statSync();
+  } else if (path.existsSync()) {
+    var fileStat = File(path.path).statSync();
     // directory or file
-    _details["lastModified"] = TimeTools.timeNormalize(fileStat.modified);
-    _details["lastAccessed"] = TimeTools.timeNormalize(fileStat.accessed);
-    _details["lastChanged"] = TimeTools.timeNormalize(fileStat.changed);
-    _details["type"] = fileStat.type.toString();
-    _details["size"] = fileStat.size;
-    _details["permissions"] = fileStat.modeString();
-    _details["extension"] = pathlib.extension(path.path).replaceFirst('.', '');
-    _details["path"] = path;
+    _details['lastModified'] = TimeTools.timeNormalize(fileStat.modified);
+    _details['lastAccessed'] = TimeTools.timeNormalize(fileStat.accessed);
+    _details['lastChanged'] = TimeTools.timeNormalize(fileStat.changed);
+    _details['type'] = fileStat.type.toString();
+    _details['size'] = fileStat.size;
+    _details['permissions'] = fileStat.modeString();
+    _details['extension'] = pathlib.extension(path.path).replaceFirst('.', '');
+    _details['path'] = path;
 
     return _details;
   }
@@ -133,22 +132,22 @@ bool isHidden(String path, String root) {
 
 /// keepHidden: show files that start with .
 Stream<List<FileSystemEntity>> fileStream(String path,
-    {changeCurrentPath: true,
-    reverse: false,
-    recursive: false,
-    keepHidden: false}) async* {
-  Directory _path = Directory(path);
-  List<FileSystemEntity> _files = List<FileSystemEntity>();
+    {bool changeCurrentPath = true,
+    bool reverse = false,
+    bool recursive = false,
+    bool keepHidden = false}) async* {
+  var _path = Directory(path);
+  var _files = <FileSystemEntity>[];
   try {
     // Checking if the target directory contains files inside or not!
     // so that [StreamBuilder] won't emit the same old data if there are
     // no elements inside that directory.
-    if (_path.listSync(recursive: recursive).length != 0) {
+    if (_path.listSync(recursive: recursive).isNotEmpty) {
       if (!keepHidden) {
         yield* _path.list(recursive: recursive).transform(
             StreamTransformer.fromHandlers(
                 handleData: (FileSystemEntity data, sink) {
-          print("filsytem_utils -> fileStream: $data");
+          print('filsytem_utils -> fileStream: $data');
           _files.add(data);
           sink.add(_files);
         }));
@@ -156,7 +155,7 @@ Stream<List<FileSystemEntity>> fileStream(String path,
         yield* _path.list(recursive: recursive).transform(
             StreamTransformer.fromHandlers(
                 handleData: (FileSystemEntity data, sink) {
-          print("filsytem_utils -> fileStream: $data");
+          print('filsytem_utils -> fileStream: $data');
           if (data.basename().startsWith('.')) {
             _files.add(data);
             sink.add(_files);
@@ -177,8 +176,10 @@ Stream<List<FileSystemEntity>> fileStream(String path,
 ///
 /// `path`: start point
 /// `query`: regex or simple string
-Stream<List<FileSystemEntity>> searchStream(dynamic path, String query,
-    {bool matchCase: false, recursive: true, bool hidden: false}) async* {
+Stream<List<FileSystemEntity>> searchStream(String path, String query,
+    {bool matchCase = false,
+    bool recursive = true,
+    bool hidden = false}) async* {
   yield* fileStream(path, recursive: recursive)
       .transform(StreamTransformer.fromHandlers(handleData: (data, sink) {
     // Filtering
@@ -190,18 +191,18 @@ Stream<List<FileSystemEntity>> searchStream(dynamic path, String query,
 
 // Future<int> getFreeSpace(String path) async {
 //   MethodChannel platform = const MethodChannel('samples.flutter.dev/battery');
-//   int freeSpace = await platform.invokeMethod("getFreeStorageSpace");
+//   int freeSpace = await platform.invokeMethod('getFreeStorageSpace');
 //   return freeSpace;
 // }
 
 /// Create folder by path
-/// * i.e: `.createFolderByPath("/storage/emulated/0/", "folder name" )`
+/// * i.e: `.createFolderByPath('/storage/emulated/0/', 'folder name' )`
 ///
 /// Supply path alone to create by already combined path, or path + filename
 /// to be combined
 Future<Directory> createFolderByPath(String path, {String folderName}) async {
-  print("filesystem_utils->createFolderByPath: $folderName @ $path");
-  var _directory;
+  print('filesystem_utils->createFolderByPath: $folderName @ $path');
+  Directory _directory;
 
   if (folderName != null) {
     _directory = Directory(pathlib.join(path, folderName));
@@ -211,13 +212,13 @@ Future<Directory> createFolderByPath(String path, {String folderName}) async {
 
   try {
     if (!_directory.existsSync()) {
-      _directory.create();
+      await _directory.create();
     } else {
-      FileSystemException("File already exists");
+      FileSystemException('File already exists');
     }
     return _directory;
   } catch (e) {
-    throw FileSystemException(e);
+    throw FileSystemException(e.toString());
   }
 }
 
@@ -233,10 +234,10 @@ Future<Directory> createFolderByPath(String path, {String folderName}) async {
 /// * `Directory: /lib/user/share`
 /// * `....`
 List<Directory> splitPathToDirectories(String fullPath) {
-  List<Directory> splittedPath = List();
-  Directory fullPathDir = Directory(fullPath);
+  var splittedPath = <Directory>[];
+  var fullPathDir = Directory(fullPath);
   splittedPath.add(fullPathDir);
-  for (int i = 0; i == pathlib.split(fullPath).length; i++) {
+  for (var i = 0; i == pathlib.split(fullPath).length; i++) {
     splittedPath.add(fullPathDir.parent);
     fullPathDir = fullPathDir.parent;
   }
@@ -244,24 +245,24 @@ List<Directory> splitPathToDirectories(String fullPath) {
 }
 
 void copy(String targetPath, String destination) {
-  Directory targetDir = Directory(targetPath);
+  var targetDir = Directory(targetPath);
   try {
-    print("Trying Copying directory: $targetPath");
+    print('Trying Copying directory: $targetPath');
     if (targetDir.existsSync()) {
-      print("Target path exists, copying directory...");
-      String targetBasename = pathlib.basename(targetPath);
+      print('Target path exists, copying directory...');
+      var targetBasename = pathlib.basename(targetPath);
 
       // Create target
-      Directory newPath = Directory(pathlib.join(destination, targetBasename))
+      var newPath = Directory(pathlib.join(destination, targetBasename))
         ..create();
       for (var fileOrDir in targetDir.listSync()) {
         // if it was file
         if (fileOrDir is File) {
-          print("Copying file: ${fileOrDir.path} to ${newPath.path}\n");
+          print('Copying file: ${fileOrDir.path} to ${newPath.path}\n');
           fileOrDir.copy(
               pathlib.join(newPath.path, pathlib.basename(fileOrDir.path)));
         } else if (fileOrDir is Directory) {
-          print("Copying directory: ${fileOrDir.path} to ${newPath.path}\n");
+          print('Copying directory: ${fileOrDir.path} to ${newPath.path}\n');
           // recursion
           copy(fileOrDir.path, newPath.path);
         }
@@ -272,7 +273,7 @@ void copy(String targetPath, String destination) {
         }
       }
     } else {
-      throw FileSystemException("Target does not exist", targetPath);
+      throw FileSystemException('Target does not exist', targetPath);
     }
   } catch (e) {
     rethrow;
@@ -280,8 +281,8 @@ void copy(String targetPath, String destination) {
 }
 
 Future<Directory> rename(String target, String destination) async {
-  Directory targetDir = Directory(target);
-  String basename = pathlib.basename(targetDir.path);
+  var targetDir = Directory(target);
+  var basename = pathlib.basename(targetDir.path);
   return await targetDir.rename(pathlib.join(destination, basename));
 }
 
@@ -289,7 +290,7 @@ Future<Directory> rename(String target, String destination) async {
 /// Return [File]
 /// You can call normal [File] methods
 Future<File> cacheFile(String name) async {
-  Directory tempDir = await getTemporaryDirectory();
+  var tempDir = await getTemporaryDirectory();
   return File(pathlib.join(tempDir.path, name));
 }
 
@@ -298,13 +299,13 @@ Future<File> cacheFile(String name) async {
 /// [extensions].
 /// * sortedBy: [FlutterFileUtilsSorting]
 /// * [bool] reversed: in case parameter sortedBy is used
-Future<List<File>> listFiles(String path,
+Future<List<FileSystemEntity>> listFiles(String path,
     {List<String> extensions,
-    followsLinks = false,
-    excludeHidden = false,
+    bool followsLinks = false,
+    bool excludeHidden = false,
     FlutterFileUtilsSorting sortedBy,
-    bool reversed: false}) async {
-  List<File> files = [];
+    bool reversed = false}) async {
+  var files = <File>[];
 
   try {
     List contents =
@@ -314,13 +315,14 @@ Future<List<File>> listFiles(String path,
       //     RegexTools.makeExtensionPatterns(extensions);
       for (var fileOrDir in contents) {
         if (fileOrDir is File) {
-          String file = pathlib.normalize(fileOrDir.path);
+          var file = pathlib.normalize(fileOrDir.path);
           for (var extension in extensions) {
-            if (pathlib.extension(file).replaceFirst(".", "") ==
+            if (pathlib.extension(file).replaceFirst('.', '') ==
                 extension.replaceFirst('.', '')) {
               if (excludeHidden) {
-                if (file.startsWith('.'))
+                if (file.startsWith('.')) {
                   files.add(File(pathlib.normalize(fileOrDir.absolute.path)));
+                }
               } else {
                 files.add(File(pathlib.normalize(fileOrDir.absolute.path)));
               }
@@ -347,48 +349,50 @@ Future<List<File>> listFiles(String path,
 
 /// This function return list of folders of type [String] , not full paths [Directory].
 ///
-/// e.g: listFolders(Directory("/")) = root, usr, var, proc, mnt ...
-/// * [hidden]: this parameter excludes folders starts with " . "
+/// e.g: listFolders(Directory('/')) = root, usr, var, proc, mnt ...
+/// * [hidden]: this parameter excludes folders starts with ' . '
 /// * [excludedFolders]: this parameter excludes folders from the result
 /// * sortedBy: [Sorting]
 /// * [bool] reversed: in case parameter sortedBy is used
-/// * examples: ["Android", "Download", "DCIM", ....]
+/// * examples: ['Android', 'Download', 'DCIM', ....]
 Future<List<String>> listFolders(Directory path,
     {List<String> excludedFolders,
     List<String> excludedPaths,
-    bool excludeHidden: false,
-    followLinks: false,
+    bool excludeHidden = false,
+    bool followLinks = false,
     FlutterFileUtilsSorting sortedBy,
-    bool reversed: false}) async {
-  List<String> folders = (await listDirectories(path,
+    bool reversed = false}) async {
+  var folders = (await listDirectories(path,
           excludeHidden: excludeHidden,
           followLinks: false,
           reversed: reversed,
           sortedBy: sortedBy))
-      .map((Directory directory) => pathlib.split(directory.absolute.path).last)
+      .map((FileSystemEntity directory) =>
+          pathlib.split(directory.absolute.path).last)
       .toList();
   return folders;
 }
 
 /// Return a [List] of directories starting from the given path
-/// * [hidden] : [true] or [false] return hidden directory, like: "/storage/.thumbnails"
+/// * [hidden] : [true] or [false] return hidden directory, like: '/storage/.thumbnails'
 /// * [true] will return hidden directories
 /// * sortedBy: [Sorting]
 /// * [bool] reversed: in case parameter sortedBy is used
-Future<List<Directory>> listDirectories(Directory path,
-    {excludeHidden: false,
-    followLinks = false,
+Future<List<FileSystemEntity>> listDirectories(Directory path,
+    {bool excludeHidden = false,
+    bool followLinks = false,
     FlutterFileUtilsSorting sortedBy,
-    bool reversed: false}) async {
-  List<Directory> directories = [];
+    bool reversed = false}) async {
+  var directories = <Directory>[];
   try {
     List contents = path.listSync(followLinks: followLinks, recursive: false);
     if (excludeHidden == true) {
       for (var fileOrDir in contents) {
         if (fileOrDir is Directory) {
-          if (!fileOrDir.path.startsWith("."))
+          if (!fileOrDir.path.startsWith('.')) {
             directories
                 .add(Directory(pathlib.normalize(fileOrDir.absolute.path)));
+          }
         }
       }
     } else {
@@ -414,7 +418,7 @@ Future<List<Directory>> listDirectories(Directory path,
 Future<void> deleteAll(List<FileSystemEntity> files) async {
   try {
     for (var file in files) {
-      file.delete();
+      await file.delete();
     }
   } on FileSystemException catch (e) {
     throw FileManagerError(e.toString());
@@ -424,13 +428,13 @@ Future<void> deleteAll(List<FileSystemEntity> files) async {
 }
 
 /// Delete a directory recursively or not
-/// 
+///
 /// e.g:
-/// * deleteFile(/storage/emulated/0/myFile.txt")
-bool deleteDir(String path, {recursive: false}) {
-  //print("~ deleting:" + path);
+/// * deleteFile(/storage/emulated/0/myFile.txt')
+bool deleteDir(String path, {bool recursive = false}) {
+  //print('~ deleting:' + path);
   if (File(path).existsSync()) {
-    throw Exception("This is a file path not a directory path");
+    throw Exception('This is a file path not a directory path');
   }
   var file = File(path);
   try {

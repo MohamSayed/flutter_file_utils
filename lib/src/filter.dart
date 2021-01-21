@@ -1,12 +1,10 @@
 // dart
 import 'dart:io';
 
-// packages
 import 'package:path/path.dart' as pathlib;
 
-// local
-import 'file_system_utils.dart';
 import 'exceptions.dart';
+import 'file_system_utils.dart';
 
 // Base file filter for creating other filters
 abstract class FileFilter {
@@ -32,9 +30,9 @@ class SimpleFileFilter extends FileFilter {
   bool directoryOnly;
   SimpleFileFilter(
       {this.allowedExtensions,
-      this.includeHidden: true,
-      this.fileOnly: false,
-      this.directoryOnly: false})
+      this.includeHidden = true,
+      this.fileOnly = false,
+      this.directoryOnly = false})
       : assert(validExtensions(allowedExtensions)),
         assert(!(fileOnly && directoryOnly));
 
@@ -57,8 +55,9 @@ class SimpleFileFilter extends FileFilter {
         }
         return true;
         // is file
-      } else
+      } else {
         return false;
+      }
     } else if (fileOnly) {
       // is directory or link
       if (FileSystemEntity.isDirectorySync(path)) {

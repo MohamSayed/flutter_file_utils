@@ -2,21 +2,20 @@
 import 'dart:async';
 import 'dart:io';
 
-// packages
+import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 
-// local files
-import 'sorting.dart';
-import 'filter.dart';
-import 'file_system_utils.dart';
 import 'exceptions.dart';
+import 'file_system_utils.dart';
+import 'filter.dart';
+import 'sorting.dart';
 
 final String permissionMessage = '''
     \n
     Try to add thes lines to your AndroidManifest.xml file
 
-          `<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>`
-          `<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>`
+          `<uses-permission android:name='android.permission.WRITE_EXTERNAL_STORAGE'/>`
+          `<uses-permission android:name='android.permission.READ_EXTERNAL_STORAGE'/>`
 
     and grant storage permissions to your applicaion from app settings
     \n
@@ -28,19 +27,19 @@ class FileManager {
 
   FileFilter filter;
 
-  FileManager({this.root, this.filter}) : assert(root != null);
+  FileManager({@required this.root, this.filter}) : assert(root != null);
 
   /// * This function returns a [List] of [int howMany] of type [File] of recently created files.
   /// * [excludeHidded] if [true] hidden files will not be returned
   /// * sortedBy: [Sorting]
   /// * [bool] reversed: in case parameter sortedBy is used
-  Future<List<File>> recentFilesAndDirs(int count,
+  Future<List<FileSystemEntity>> recentFilesAndDirs(int count,
       {List<String> extensions,
       List<String> excludedPaths,
-      excludeHidden: false,
+      bool excludeHidden = false,
       FlutterFileUtilsSorting sortedBy,
-      bool reversed: false}) async {
-    List<File> filesPaths = await filesTree(
+      bool reversed = false}) async {
+    var filesPaths = await filesTree(
         excludedPaths: excludedPaths,
         extensions: extensions,
         excludeHidden: excludeHidden);
@@ -56,7 +55,8 @@ class FileManager {
     _sorted = _sorted.getRange(0, count).toList();
 
     if (sortedBy != null) {
-      return sortBy(filesPaths, sortedBy, reversed: reversed);
+      _sorted = sortBy(filesPaths, sortedBy, reversed: reversed);
+      _sorted = _sorted.getRange(0, count).toList();
     }
 
     return _sorted;
@@ -67,12 +67,12 @@ class FileManager {
   /// * [excludedPaths] will excluded paths and their subpaths from the final [list]
   /// * sortedBy: [FlutterFileUtilsSorting]
   /// * [bool] reversed: in case parameter sortedBy is used
-  Future<List<Directory>> dirsTree(
+  Future<List<FileSystemEntity>> dirsTree(
       {List<String> excludedPaths,
-      bool followLinks: false,
-      bool excludeHidden: false,
+      bool followLinks = false,
+      bool excludeHidden = false,
       FlutterFileUtilsSorting sortedBy}) async {
-    List<Directory> dirs = [];
+    var dirs = <Directory>[];
 
     try {
       var contents = root.listSync(recursive: true, followLinks: followLinks);
@@ -84,7 +84,7 @@ class FileManager {
                 if (!excludeHidden) {
                   dirs.add(Directory(p.normalize(fileOrDir.absolute.path)));
                 } else {
-                  if (!fileOrDir.absolute.path.contains(RegExp(r"\.[\w]+"))) {
+                  if (!fileOrDir.absolute.path.contains(RegExp(r'\.[\w]+'))) {
                     dirs.add(Directory(p.normalize(fileOrDir.absolute.path)));
                   }
                 }
@@ -99,8 +99,8 @@ class FileManager {
               dirs.add(Directory(p.normalize(fileOrDir.absolute.path)));
             } else {
               // The Regex below is used to check if the directory contains
-              // ".file" in pathe
-              if (!fileOrDir.absolute.path.contains(RegExp(r"\.[\w]+"))) {
+              // '.file' in pathe
+              if (!fileOrDir.absolute.path.contains(RegExp(r'\.[\w]+'))) {
                 dirs.add(Directory(p.normalize(fileOrDir.absolute.path)));
               }
             }
@@ -122,15 +122,15 @@ class FileManager {
   ///   returned from this path, and its sub directories
   /// * sortedBy: [Sorting]
   /// * [bool] reversed: in case parameter sortedBy is used
-  Future<List<File>> filesTree(
+  Future<List<FileSystemEntity>> filesTree(
       {List<String> extensions,
       List<String> excludedPaths,
-      excludeHidden = false,
-      bool reversed: false,
+      bool excludeHidden = false,
+      bool reversed = false,
       FlutterFileUtilsSorting sortedBy}) async {
-    List<File> files = [];
+    var files = <FileSystemEntity>[];
 
-    List<Directory> dirs = await dirsTree(
+    var dirs = await dirsTree(
         excludedPaths: excludedPaths, excludeHidden: excludeHidden);
 
     dirs.insert(0, Directory(root.path));
@@ -140,10 +140,11 @@ class FileManager {
         for (var file
             in await listFiles(dir.absolute.path, extensions: extensions)) {
           if (excludeHidden) {
-            if (!file.path.startsWith("."))
+            if (!file.path.startsWith('.')) {
               files.add(file);
-            else
-              print("Excluded: ${file.path}");
+            } else {
+              print('Excluded: ${file.path}');
+            }
           } else {
             files.add(file);
           }
@@ -153,10 +154,11 @@ class FileManager {
       for (var dir in dirs) {
         for (var file in await listFiles(dir.absolute.path)) {
           if (excludeHidden) {
-            if (!file.path.startsWith("."))
+            if (!file.path.startsWith('.')) {
               files.add(file);
-            else
-              print("Excluded: ${file.path}");
+            } else {
+              print('Excluded: ${file.path}');
+            }
           } else {
             files.add(file);
           }
@@ -174,7 +176,7 @@ class FileManager {
   /// Return tree [List] of files starting from the root of type [File].
   ///
   /// This function uses filter
-  Stream<FileSystemEntity> walk({followLinks: false}) async* {
+  Stream<FileSystemEntity> walk({bool followLinks = false}) async* {
     if (filter != null) {
       try {
         yield* Directory(root.path)
@@ -189,40 +191,40 @@ class FileManager {
         throw FileManagerError(permissionMessage + error.toString());
       }
     } else {
-      print("Flutter File Manager: walk: No filter");
+      print('Flutter File Manager: walk: No filter');
       yield* Directory(root.path)
           .list(recursive: true, followLinks: followLinks);
     }
   }
 
   /// Returns a list of found items of [Directory] or [File] type or empty list.
-  /// You may supply `Regular Expression` e.g: "*\.png", instead of string.
+  /// You may supply `Regular Expression` e.g: '*\.png', instead of string.
   /// * [filesOnly] if set to [true] return only files
   /// * [dirsOnly] if set to [true] return only directories
   /// * You can set both to [true]
   /// * sortedBy: [Sorting]
   /// * [bool] reversed: in case parameter sortedBy is used
   /// * Example:
-  /// * List<String> imagesPaths = await FileManager.search("myFile.png");
-  Future<List<dynamic>> searchFuture(
-    var keyword, {
+  /// * List<String> imagesPaths = await FileManager.search('myFile.png');
+  Future<List<FileSystemEntity>> searchFuture(
+    String keyword, {
     List<String> excludedPaths,
-    filesOnly = false,
-    dirsOnly = false,
+    bool filesOnly = false,
+    bool dirsOnly = false,
     List<String> extensions,
-    bool reversed: false,
+    bool reversed = false,
     FlutterFileUtilsSorting sortedBy,
   }) async {
-    print("Searching for: $keyword");
+    print('Searching for: $keyword');
     // files that will be returned
-    List<dynamic> founds = [];
+    var founds = <FileSystemEntity>[];
 
-    if (keyword.length == 0 || keyword == null) {
-      throw Exception("search keyword == null");
+    if (keyword.isEmpty || keyword == null) {
+      throw Exception('search keyword == null');
     }
 
-    List<Directory> dirs = await dirsTree(excludedPaths: excludedPaths);
-    List<File> files =
+    var dirs = await dirsTree(excludedPaths: excludedPaths);
+    var files =
         await filesTree(excludedPaths: excludedPaths, extensions: extensions);
 
     if (filesOnly == false && dirsOnly == false) {
@@ -257,25 +259,25 @@ class FileManager {
   }
 
   /// Returns a list of found items of [Directory] or [File] type or empty list.
-  /// You may supply `Regular Expression` e.g: "*\.png", instead of string.
+  /// You may supply `Regular Expression` e.g: '*\.png', instead of string.
   /// * [filesOnly] if set to [true] return only files
   /// * [dirsOnly] if set to [true] return only directories
   /// * You can set both to [true]
   /// * sortedBy: [FlutterFileUtilsSorting]
   /// * [bool] reverse: in case parameter sortedBy is used
   /// * Example:
-  /// * `List<String> imagesPaths = await FileManager.search("myFile.png").toList();`
+  /// * `List<String> imagesPaths = await FileManager.search('myFile.png').toList();`
   Stream<FileSystemEntity> search(
-    var keyword, {
+    String keyword, {
     FileFilter searchFilter,
     FlutterFileUtilsSorting sortedBy,
   }) async* {
     try {
-      if (keyword.length == 0 || keyword == null) {
-        throw FileManagerError("search keyword == null");
+      if (keyword.isEmpty || keyword == null) {
+        throw FileManagerError('search keyword == null');
       }
       if (searchFilter != null) {
-        print("Using default filter");
+        print('Using default filter');
         yield* root.list(recursive: true, followLinks: true).where((test) {
           if (searchFilter.isValid(test.absolute.path, root.absolute.path)) {
             return getBaseName(test.path, extension: true).contains(keyword);
@@ -283,7 +285,7 @@ class FileManager {
           return false;
         });
       } else if (filter != null) {
-        print("Using default filter");
+        print('Using default filter');
         yield* root.list(recursive: true, followLinks: true).where((test) {
           if (filter.isValid(test.absolute.path, root.absolute.path)) {
             return getBaseName(test.path, extension: true).contains(keyword);

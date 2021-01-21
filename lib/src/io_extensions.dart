@@ -6,7 +6,6 @@
 // dart
 import 'dart:io';
 
-// packages
 import 'package:path/path.dart' as pathlib;
 
 /// Extension on [File]
@@ -24,7 +23,7 @@ extension ExtendedFile on File {
 /// Extension on [Directory]
 extension ExtendedDirectory on Directory {
   String basename() {
-    return pathlib.basename(this.path);
+    return pathlib.basename(path);
   }
 }
 

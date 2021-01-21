@@ -25,9 +25,8 @@ dependency in your `pubspec.yaml`  file.
 dependencies:
   flutter:
     sdk: flutter
-  path: 1.6.2
-  path_provider: 0.5.0+1
-  flutter_file_utils: ^0.2.0
+  path_provider: ^1.6.7
+  flutter_file_utils: ^0.1.1
 ```
 
 And, add read / write permissions in your
